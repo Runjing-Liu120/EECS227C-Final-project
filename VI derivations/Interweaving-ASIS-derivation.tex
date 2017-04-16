@@ -415,6 +415,12 @@ Setting these derivatives to zero and solving for the variational parameters,
 \sigma_\theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\mu^{(t)}} }\Big)^{-1}
 \end{align}
 
+In particular, the ELBO is maximized when we set 
+\begin{align*}
+\hat \nu &= \mu^{(t)} - \theta^{(t)}\\
+\hat \theta &= \theta^{(t)}
+\end{align*}
+
 \section{Step (6) reparametrization}
 Now we derive the updates to compute step (6); we seek
 \begin{align}
@@ -453,11 +459,16 @@ Taking partial derivatives,
 Setting these derivatives to zero and solving for the variational parameters, 
 \begin{align}
 \hat \mu &= \nu^{(t)} + \hat\theta\\
-\hat \theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\nu^{(t)}} }\Big)^{-1}\Big(\frac{\theta^{(t)}}{\sigma^2_{\theta^{(t)}}} + \frac{\mu^{(t)}  - \hat\nu}{\sigma^2_{\nu^{(t)}}}\Big)\\
+\hat \theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\nu^{(t)}} }\Big)^{-1}\Big(\frac{\theta^{(t)}}{\sigma^2_{\theta^{(t)}}} + \frac{\hat\mu  - \nu^{(t)}}{\sigma^2_{\nu^{(t)}}}\Big)\\
 \sigma_\nu^2 &= \sigma^2_{\nu^{(t)}}\\
 \sigma_\theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\nu^{(t)}} }\Big)^{-1}
 \end{align}
 
+In particular, the ELBO is maximized when 
+\begin{align*} 
+\hat\theta &= \theta^{(t)}\\
+\hat \mu &=  \nu^{(t)} + \theta^{(t)}
+\end{align*}
 
 
 \end{document}
