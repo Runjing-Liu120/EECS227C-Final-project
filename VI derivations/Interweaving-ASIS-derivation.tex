@@ -445,7 +445,7 @@ By a similar calculation as above when we computed the ELBO for step (3),
 Taking partial derivatives, 
 \begin{align}
 \frac{\partial \mathcal L}{\partial \hat\mu} &= - \frac{\hat \mu}{\sigma^2_{\nu^{(t)}}} + \frac{\hat \theta}{\sigma^2_{\nu^{(t)}}} +  \frac{\nu^{(t)}}{\sigma^2_{\nu^{(t)}}} \\
-\frac{\partial \mathcal L}{\partial \hat\theta} 	&=  - \frac{\hat \theta}{\sigma^2_{\nu^{(t)}}} + \frac{\hat \mu}{\sigma^2_{\nu^{(t)}}} +  \frac{\nu^{(t)}}{\sigma^2_{\nu^{(t)}}} - \frac{\hat\theta}{\sigma^2_{\theta^{(t)}}} + \frac{\theta^{(t)}}{\sigma^2_{\theta^{(t)}}}\\
+\frac{\partial \mathcal L}{\partial \hat\theta} 	&=  - \frac{\hat \theta}{\sigma^2_{\nu^{(t)}}}  + \frac{\hat \mu}{\sigma^2_{\nu^{(t)}}} -  \frac{\nu^{(t)}}{\sigma^2_{\nu^{(t)}}} - \frac{\hat\theta}{\sigma^2_{\theta^{(t)}}} + \frac{\theta^{(t)}}{\sigma^2_{\theta^{(t)}}}\\
 \frac{\partial \mathcal L}{\partial \sigma_\mu} &= - \frac{\sigma_\mu}{\sigma^2_{\nu^{(t)}}} + \frac{1}{\sigma_\mu}\\
 \frac{\partial \mathcal L}{\partial \sigma_\theta} &= - \frac{\sigma_\theta} {\sigma^2_{\nu^{(t)}}} - \frac{\sigma_\theta}{\sigma_{\theta^{(t)}}^2}+ \frac{1}{\sigma_\theta}
 \end{align}
@@ -453,7 +453,7 @@ Taking partial derivatives,
 Setting these derivatives to zero and solving for the variational parameters, 
 \begin{align}
 \hat \mu &= \nu^{(t)} + \hat\theta\\
-\hat \theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\nu^{(t)}} }\Big)^{-1}\Big(\frac{\theta^{(t)}}{\sigma^2_{\theta^{(t)}}} + \frac{\mu^{(t)}  + \hat\nu}{\sigma^2_{\mu^{(t)}}}\Big)\\
+\hat \theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\nu^{(t)}} }\Big)^{-1}\Big(\frac{\theta^{(t)}}{\sigma^2_{\theta^{(t)}}} + \frac{\mu^{(t)}  - \hat\nu}{\sigma^2_{\nu^{(t)}}}\Big)\\
 \sigma_\nu^2 &= \sigma^2_{\nu^{(t)}}\\
 \sigma_\theta &= \Big(\frac{1}{\sigma^2_{\theta^{(t)}}}  + \frac{1}{\sigma^2_{\nu^{(t)}} }\Big)^{-1}
 \end{align}
