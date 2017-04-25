@@ -1,0 +1,313 @@
+\documentclass{article}
+
+\usepackage[a4paper, total={6in, 8.5in}]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}    
+\usepackage{hyperref} 
+\usepackage{url}   
+\usepackage{booktabs}    
+\usepackage{amssymb,amsfonts,amsmath,graphicx}      
+\usepackage{nicefrac}       
+\usepackage{microtype}    
+\usepackage{breqn}
+\usepackage[usenames, dvipsnames]{color}
+\input{stat-macros}
+
+\DeclareMathOperator*{\argminU}{arg\,min}
+\DeclareMathOperator*{\argmaxU}{arg\,max}
+
+
+\begin{document}
+
+
+\section{Two Data Augmentations}
+
+Suppose we have a joint distribution $p(X,\theta) = p(X\mid\theta)p(\theta)$ specified by a likelihood and a prior. Bayesian statistics frames inferences about the unknown quantity $\theta$ in terms of calculations involving the posterior $p(\theta\mid X)$ given the observations. In many cases, it is helpful to work with an augmented model containing intermediate latent variables $\mu$. In general we have the {\sl hierarchical factorization}
+\begin{align}
+p(X,\mu,\theta) 
+&= p(X\mid \mu,\theta)p(\mu\mid\theta)p(\theta).
+\end{align}
+In a {\sl sufficient augmentation} (SA), the new variables $\mu$ are sufficient for $\theta$, so the factorization
+\begin{align}
+p(X,\mu,\theta) 
+&= p(X\mid \mu)p(\mu\mid\theta)p(\theta)
+\end{align}
+holds. In an {\sl ancillary augmentation} (AA), the new variables---denoted $\nu$ for contrast---are independent of $\theta$ a priori, so the joint distribution factorizes as 
+\begin{align}
+p(X,\nu,\theta) 
+&= p(X\mid \nu,\theta)p(\nu)p(\theta).
+\end{align}
+\noindent {\bf Example.} In location families, for example, there are natural sufficient and ancillary augmentations. One important example is the normal-normal model. In the sufficient augmentation,
+\begin{align}
+\mu \mid \theta
+&\sim \cn(\theta,V) \\
+X\mid \mu,\theta
+&\sim \cn(\mu,1)
+\end{align}
+with a flat prior on $\theta$, the posterior is $\cn(X,1+V)$. In the ancillary augmentation,
+\begin{align}
+\nu \mid \theta
+&\sim \cn(0,V) \\
+X\mid \nu,\theta
+&\sim \cn(\nu +\theta,1)
+\end{align}
+There is a one-to-one relationship $\nu=\mu-\theta$ between the two augmentation schemes, but the performance of approximate posterior inference methods can differ depending on the choice of augmentation.
+
+\section{Variational Inference}
+
+{\sl Mean-field variational inference} finds the factorized distribution over the latent which is closest in KL-divergence to the posterior. In the context of the previous example, our objective is
+\begin{align}
+\min_{q(\mu),q(\theta)}D\bigg(q(\mu)q(\theta)\,\bigg\|\, p(\mu,\theta\mid X)\bigg),
+\end{align}
+and similarly for the ancillary augmentation. This is easily shown to be equivalent to maximizing the evidence lower bound (ELBO) 
+\begin{align}
+\max_{q = q(\mu)q(\theta)}\underbrace{\EE_q\bigg[\log \frac{p(X,\mu,\theta)}{q(\mu)q(\theta)}\bigg]}_{\cl(q)},
+\end{align}
+It is also easily shown that maximizing one variational factor $q(\mu)$ with the other $q(\theta)$ held fixed and vice versa is given in closed form by
+\begin{align}
+q(\mu)
+&\propto \exp\left\{\EE_{q(\theta)}\left[\log p(X,\mu,\theta)\right]\right\} \\
+q(\theta)
+&\propto \exp\left\{\EE_{q(\mu)}\left[\log p(X,\mu,\theta)\right]\right\} 
+\end{align}
+Alternating (10) and (11) gives a coordinate ascent algorithm (called {\sl CAVI}) for maximizing (9). \newpage
+
+\noindent {\bf Example.} (SA) Returning to the sufficient augmentation version of the normal-normal model above, 
+\begin{align}
+q(\mu)
+&\triangleq \cn(\widehat\mu,\widehat\sigma_\mu^2) \\
+q(\theta)
+&\triangleq \cn(\widehat\theta_S,\widehat\sigma_{\theta_S}^2)
+\end{align}
+Since we are optimizing the variational parameters (denoted by $\text{hat}\widehat{\text{s}}\,$), we include superscripts $\widehat\mu^{(t)}$ for the iteration number. Writing out the ELBO
+\begin{align*}
+\cl(q)
+&=\EE_{q}\bigg[\log \frac{p(X,\mu,\theta)}{q(\mu)q(\theta)}\bigg] \\
+&=  \EE_{q}\bigg[\log p(X\mid \mu)\bigg]
+-  \EE_{q}\bigg[\log\frac{q(\mu)}{p(\mu\mid \theta)} \bigg]
+-  \EE_{q}\bigg[\log \frac{q(\theta)}{p(\theta)}\bigg] \\
+&=  \frac{2X\widehat\mu -  \widehat\sigma_{\mu}^{2} - \widehat\mu^{2}}{2} %\EE_q\bigg[-(x-\mu)^2\bigg]
++\log\widehat\sigma_\mu - \frac{\widehat\sigma_\mu^{2}+\widehat\sigma_{\theta_S}^{2} + (\widehat\mu-\widehat\theta)^2}{2V}
++\log \widehat{\sigma}_{\theta_S} 
+%\EE_q\bigg[\log \frac{q(\theta)}{p(\theta)}\bigg] 
++ \text{const.}
+\end{align*}
+The coordinate ascent updates are
+\begin{align}
+\widehat\mu^{(t+1)}
+&= \frac{VX + \widehat\theta^{(t)}}{1+V} \\
+\widehat\sigma^{2(t+1)}_{\mu}
+&= \frac{V}{1+V} \\
+\widehat\theta^{(t+1)}
+&= \widehat\mu^{(t+1)} \\
+\widehat\sigma^{2(t+1)}_{\theta_S}
+&= V
+\end{align}
+Thus the variational parameter for the posterior variance of $\theta$ given $X$, $\widehat\sigma^{2(t+1)}_{\theta_S}= V$ underestimates the true posterior variance $1+V$ (this is a common property of variational Bayes). The variational parameter for the posterior mean of $\theta$ given $X$ satisfies
+\begin{align}
+\left|\widehat\theta^{(t+1)} - X\right|
+&= \left|\frac{VX + \widehat\theta^{(t)}}{1+V} - X\right| 
+= \frac{1}{1+V} \left|\widehat\theta^{(t)}-X\right|,
+\end{align}
+this parameter converges geometrically with rate $\frac{1}{1+V}$. \\
+
+\newpage
+
+
+\noindent {\bf Example.} (AA) For the ancillary augmentation, let
+\begin{align}
+\widetilde q(\nu)
+&\triangleq \cn(\widehat{\nu},\widehat\sigma_\nu^2) \\
+\widetilde q(\theta)
+&\triangleq \cn(\widehat\theta_A,\widehat\sigma_{\theta_A}^2).
+\end{align}
+Again writing out the ELBO,
+\begin{align*}
+\cl(\widetilde q)
+&=\EE_{\widetilde q}\bigg[\log \frac{p(X,\nu,\theta)}{\widetilde q(\nu)\widetilde q(\theta)}\bigg] \\
+&=  \EE_{\widetilde q}\bigg[\log p(X\mid \nu,\theta)\bigg]
+-  \EE_{\widetilde q}\bigg[\log\frac{\widetilde q(\nu)}{p(\nu)} \bigg]
+-  \EE_{\widetilde q}\bigg[\log \frac{\widetilde q(\theta)}{p(\theta)}\bigg] \\
+&=  \frac{2X\widehat\nu+2X\widehat\theta - 2\widehat\nu\widehat\theta - \widehat\sigma_\nu^2-\widehat\nu^2-\widehat\sigma_{\theta_A}^2-\widehat\theta^2}{2}
++\log\widehat\sigma_\nu - \frac{\widehat\sigma_\nu^{2} + \widehat\nu^2}{2V}
++\log \widehat{\sigma}_{\theta_A} 
+%\EE_q\bigg[\log \frac{q(\theta)}{p(\theta)}\bigg] 
++ \text{const.}
+\end{align*}
+The coordinate ascent updates are
+\begin{align}
+\widehat\nu^{(t+1)}
+&= \frac{V(X - \widehat\theta^{(t)})}{1+V} \\%\frac{X + V\widehat\theta^{(t)}}{1+V} \\
+\widehat\sigma^{2(t+1)}_{\nu}
+&= \frac{V}{1+V} \\
+\widehat\theta^{(t+1)}
+&= X-\widehat\nu^{(t+1)} \\
+\widehat\sigma^{2(t+1)}_{\theta_A}
+&= 1
+\end{align}
+The variational parameter for the posterior mean of $\theta$ given $X$ satisfies
+\begin{align}
+\left|\widehat\theta^{(t+1)} - X\right|
+&= \left|\widehat\nu^{(t+1)}\right| 
+= \frac{V}{1+V}\left|X - \widehat\theta^{(t)}\right|,
+\end{align}
+this parameter converges geometrically with rate $\frac{V}{1+V}$. \\
+
+\newpage
+
+\section{ASIS-CAVI}
+
+Consider the following algorithm for {\sl ancillary sufficient interweaving scheme-coordinate ascent variational inference}, as inspired by Yu and Meng (2011).
+\begin{enumerate}
+\item Update $q(\mu)$ using the CAVI update in the SA model,
+\item Update $q(\theta)$ using the CAVI update in the SA model,
+\item Reparametrize: choose $\widetilde q(\nu)$, $\widetilde q(\theta)$ to minimize
+$$
+\min_{\widetilde q(\nu),\widetilde q(\theta)} D\bigg(\widetilde q(\nu)\widetilde q(\theta)\bigg\|q(\nu+\theta)q(\theta)\bigg)
+$$
+\item Update $\widetilde q(\nu)$ using the CAVI update in the AA model,
+\item Update $\widetilde q(\theta)$ using the CAVI update in the AA model,
+\item Reparametrize: choose $q(\mu)$, $q(\theta)$ to minimize
+$$
+\min_{q(\mu),q(\theta)} D\bigg(q(\mu)q(\theta)\bigg\|\widetilde q(\mu-\theta)\widetilde q(\theta)\bigg)
+$$
+\item Repeat 1 through 6 until convergence.
+\end{enumerate}
+
+\noindent {\bf Example.} Returning to the normal-normal model, we need to solve the reparametrization steps. 
+\begin{align}
+D\bigg(\widetilde q(\nu)\widetilde q(\theta)\bigg\|q(\nu+\theta)q(\theta)\bigg)
+%&= D\bigg(
+%\cn    \left(
+%		\begin{bmatrix}\widehat\nu\\ \widehat\theta_A\end{bmatrix},
+%		\begin{bmatrix}\widehat\sigma^2_\nu & 0 \\ 0 & \widehat\sigma^2_{\theta_A}\end{bmatrix}
+%	\right)
+%\bigg\|
+%\cn    \left(
+%		\begin{bmatrix}\widehat\mu\\ \widehat\theta_S\end{bmatrix},
+%		\begin{bmatrix}\widehat\sigma^2_\mu & 0 \\ 0 & \widehat\sigma^2_{\theta_A}\end{bmatrix}
+%	\right)
+%\bigg)
+%&= \int \widetilde q(\nu)\widetilde q(\theta) \log \frac{\widetilde q(\nu)\widetilde q(\theta)}{q(\nu+\theta)q(\theta)}\diff \nu\diff \theta
+&=\EE_{\widetilde q}[\log q(\nu+\theta)q(\theta)] - H(\widetilde q) \\
+&=\EE_{\widetilde q}\left[\log 
+\frac{1}{\sqrt{2\pi\widehat\sigma_{\mu}^2}}\exp\left(-\frac{(\nu+\theta - \widehat\mu)^2}{2\widehat\sigma_{\mu}^2}\right)
+\frac{1}{\sqrt{2\pi\widehat\sigma_{\theta_S}^2}}\exp\left(-\frac{(\theta - \widehat\theta_S)^2}{2\widehat\sigma_{\theta_S}^2}\right)
+\right] - H(\widetilde q) \\
+&=\text{const.} +  \EE_{\widetilde q}\left[-\frac{(\nu+\theta - \widehat\mu)^2}{2\widehat\sigma_{\mu}^2}
+-\frac{(\theta - \widehat\theta_S)^2}{2\widehat\sigma_{\theta_S}^2}
+\right] 
++ \log(2\pi e\widehat\sigma_{\nu}\widehat\sigma_{\theta_A}) \\
+&=\text{const.}  
+-\frac{
+\widehat\nu^2+\widehat\sigma_\nu^2+\widehat\theta_A^2 + \widehat\sigma_{\theta_A}^2 + \widehat\mu^2 - 2\widehat\nu\widehat\mu-2\widehat\theta_A\widehat\mu + 2\widehat\nu\widehat\theta_A}{2\widehat\sigma_{\mu}^2} \\
+&-\frac{\widehat\theta_A^2+ \widehat\sigma_{\theta_A}^2 + \widehat\theta_S^2 - 2\widehat\theta_S\widehat\theta_A}{2\widehat\sigma_{\theta_S}^2}
++ \log(2\pi e\widehat\sigma_{\nu}\widehat\sigma_{\theta_A}) 
+\end{align}
+Setting derivatives equal to zero and finding fixed points,
+\begin{align}
+\widehat\nu 
+&= \widehat\mu - \widehat\theta_S \\
+\widehat\theta_A
+%&= \frac{\widehat\sigma_{\mu}^2}{\widehat\sigma_{\theta_S}^2 + \widehat\sigma_{\mu}^2}\widehat\theta_S + \frac{\widehat\sigma_{\theta_S}^2}{\widehat\sigma_{\theta_S}^2 + \widehat\sigma_{\mu}^2}(\widehat\mu - \widehat\nu) \\
+&= \widehat\theta_S \\
+\sigma_{\nu}^2&=\widehat\sigma_{\mu}^2 
+= \frac{V}{V+1}\\
+\widehat\sigma_{\theta_A}^2 
+&= \left(\frac{1}{\widehat\sigma_{\mu}^2} + \frac{1}{\widehat\sigma_{\theta_S}^2}\right)^{-1}
+= \frac{V}{V+2}
+%= \frac{\widehat\sigma_{\mu}^2\widehat\sigma_{\theta_S}^2}{\widehat\sigma_{\mu}^2 +\widehat\sigma_{\theta_S}^2}
+\end{align}
+
+Similarly deriving step (6),
+\begin{align}
+\widehat\mu 
+&= \widehat\nu + \widehat\theta_A \\
+\widehat\theta_S
+&= \widehat\theta_A 
+%\sigma_{\nu}^2&=\widehat\sigma_{\mu}^2 
+%= \frac{V}{V+1}\\
+%\widehat\sigma_{\theta_A}^2 
+%&= \left(\frac{1}{\widehat\sigma_{\mu}^2} + \frac{1}{\widehat\sigma_{\theta_S}^2}\right)^{-1}
+%= \frac{V}{V+2}
+\end{align}
+
+
+\newpage
+
+
+
+\section{Alternate ASIS-CAVI}
+
+Consider the following algorithm for {\sl ancillary sufficient interweaving scheme-coordinate ascent variational inference}, as inspired by Yu and Meng (2011).
+\begin{enumerate}
+\item Update $q_\mu(\mu)$ using the CAVI update in the SA model,
+\item Update $q_\theta(\theta)$ using the CAVI update in the SA model,
+\item Reparametrize: choose $\widetilde q_\nu(\nu)$ to minimize
+$$
+\min_{\widetilde q_\nu(\nu)} D\bigg(q_\mu(\mu)\bigg\|\widetilde q_\nu(\mu-\theta)\bigg)
+$$
+\item Update $\widetilde q_\theta(\theta)$ using the CAVI update in the AA model,
+\item Repeat 1 through 4 until convergence.
+\end{enumerate}
+
+\noindent {\bf Example.} Returning to the normal-normal model, the only step we have yet to solve is (3)
+
+\begin{align}
+D\bigg(q_\mu(\mu)\bigg\|\widetilde q_\nu(\mu-\theta)\bigg)
+&= \EE_q\left[\log \frac{q_\mu(\mu)}{\widetilde q_\nu(\mu-\theta)}\right] \\
+&= \text{const.} - \EE_q\left[\log\widetilde q_\nu(\mu-\theta)\right] \\
+&= \text{const.}%\EE_q\left[\log \frac{1}{\sqrt{2\pi\widehat\sigma_\mu^2}}\exp\left\{-\frac{(\mu-\widehat\mu)^2}{2\widehat\sigma_\mu^2}\right\}\right]
+ - \EE_q\left[\log\frac{1}{\sqrt{2\pi\widehat\sigma_\nu^2}}\exp\left\{-\frac{(\mu-\theta-\widehat\nu)^2}{2\widehat\sigma_\nu^2}\right\}\right] \\
+ &= \text{const.}
+ +\log\widehat\sigma_\nu
+ + \frac{\widehat\nu^2 - 2\widehat\mu\widehat\nu+2\widehat\theta\widehat\nu
++\widehat\mu^2+\widehat\sigma^2_\mu+\widehat\theta^2+\widehat\sigma^2_{\theta_S}-2\widehat\mu\widehat\theta
+ }{2\widehat\sigma_\nu^2}%\EE_q\left[(\mu-\theta-\widehat\nu)^2\right] \\
+\end{align}
+this yields 
+\begin{align}
+\widehat\nu^{(t)} 
+&=\widehat\mu^{(t)}-\widehat\theta^{(t)} \\
+\widehat\sigma_\nu^{2(t)}
+%&= \widehat\nu^{2(t)}  - 2\widehat\mu^{(t)}\widehat\nu^{(t)} +2\widehat\theta^{(t)}\widehat\nu^{(t)} 
+%+\widehat\mu^{2(t)}+\widehat\sigma^{2(t)}_\mu+\widehat\theta^{2(t)}+\widehat\sigma^{2(t)}_{\theta_S}-2\widehat\mu^{(t)}\widehat\theta^{(t)} \\
+%&= \widehat\mu^{2(t)}+\widehat\theta^{2(t)} - 2\widehat\mu^{(t)}\widehat\theta^{(t)} 
+% - 2\widehat\mu^{2(t)} +2\widehat\mu^{(t)}\widehat\theta^{(t)}
+% +2\widehat\theta^{(t)}\widehat\mu^{(t)} - 2\widehat\theta^{2(t)}
+%+\widehat\mu^{2(t)}+\widehat\sigma^{2(t)}_\mu+\widehat\theta^{2(t)}+\widehat\sigma^{2(t)}_{\theta_S}-2\widehat\mu^{(t)}\widehat\theta^{(t)} \\
+&= \widehat\sigma^{2(t)}_\mu+\widehat\sigma^{2(t)}_{\theta_S}
+%= \frac{V}{V+1}+V=
+=\frac{V+2}{V+1}V.
+\end{align}
+So the whole algorithm listed above is
+\begin{align}
+\widehat\mu^{(t+1)}
+&= \frac{VX + \widehat\theta^{(t)}}{1+V} \\
+\widehat\sigma^{2(t+1)}_{\mu}
+&= \frac{V}{1+V} \\
+\widehat\theta^{(t+1)}
+&= \widehat\mu^{(t+1)} \\
+\widehat\sigma^{2(t+1)}_{\theta}
+&= V \\
+\widehat\nu^{(t+1)}
+&=  \widehat\mu^{(t+1)} - \widehat\theta^{(t+1)} = 0 \\
+\widehat\sigma_\nu^{2(t+1)}
+&=\frac{V+2}{V+1}V \\
+\widehat\theta^{(t+1)}
+&= X-\widehat\nu^{(t+1)} = X\\
+\sigma_{\theta}^{2(t+1)}
+&= 1
+\end{align}
+The algorithm converges in one iteration.
+ 
+
+
+
+
+
+
+
+
+
+\end{document}
