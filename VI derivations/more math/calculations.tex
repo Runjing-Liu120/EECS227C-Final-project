@@ -302,12 +302,103 @@ So the whole algorithm listed above is
 The algorithm converges in one iteration.
  
 
+\newpage
 
 
 
+\section{Scale Family}
+Consider the sufficient parametrization of a Gamma-Gamma-Exponential hierarchical model
+\begin{align}
+\beta
+&\sim \text{Gamma}(\gamma_1,\gamma_2) \\
+\mu\mid \beta
+&\sim \text{Gamma}(\alpha,\beta)\\
+X\mid \mu,\beta
+&\sim \text{Exponential}(\mu)
+\end{align}
+Let 
+\begin{align}
+q(\mu)
+&\triangleq \text{Gamma}(\eta_\mu, \xi_\mu) \\
+q(\beta)
+&\triangleq \text{Gamma}(\eta_\beta, \xi_\beta) 
+\end{align}
+The CAVI updates are 
+\begin{align}
+\eta_\mu^{(t+1)}
+&=\alpha+1 \\
+\xi_\mu^{(t+1)}
+&=X+\frac{\eta_\beta^{(t)}}{\xi_\beta^{(t)}} \\
+\eta_\beta^{(t+1)}
+&= \alpha +\gamma_1 \\
+\xi_\beta^{(t+1)}
+&= \frac{\eta_\mu^{(t+1)}}{\xi_\mu^{(t+1)}} +\gamma_2
+\end{align}
+The corresponding ancillary parametrization is
+\begin{align}
+\beta
+&\sim \text{Gamma}(\gamma_1,\gamma_2) \\
+\nu\mid \beta
+&\sim \text{Gamma}(\alpha,1)\\
+X\mid \nu,\beta
+&\sim \text{Exponential}(\nu\beta)
+\end{align}
+Let 
+\begin{align}
+\widetilde q(\nu)
+&\triangleq \text{Gamma}(\widetilde \eta_\nu, \widetilde \xi_\nu) \\
+\widetilde q(\beta)
+&\triangleq \text{Gamma}(\widetilde \eta_\beta, \widetilde \xi_\beta) 
+\end{align}
+The CAVI updates here are 
+\begin{align}
+\widetilde \eta_\nu^{(t+1)}
+&=\alpha+1 \\
+\widetilde \xi_\nu^{(t+1)}
+&=1+\frac{\widetilde \eta_\beta^{(t)}}{\widetilde \xi_\beta^{(t)}}X \\
+\widetilde \eta_\beta^{(t+1)}
+&= 1 +\gamma_1 \\
+\widetilde \eta_\beta^{(t+1)}
+&= \frac{\widetilde \eta_\mu^{(t+1)}}{\widetilde \xi_\mu^{(t+1)}}X +\gamma_2
+\end{align}
 
+\newpage
 
-
-
+\noindent The two models are linked by the coupling $\mu = \nu\beta$. If we want to do ASIS CAVI, the reparametrization step is 
+\begin{align}
+\widetilde\beta_1 
+&=  \mu_1 + \beta_1 - 1 \\
+\widetilde\beta_2
+&=  \mu_2\frac{\widetilde\nu_1}{\widetilde\nu_2} + \beta_2 - 1 \\
+\widetilde\nu_1
+&= \mu_1 \\
+\widetilde\nu_2
+&=\mu_2 \frac{\widetilde\beta_1}{\widetilde\beta_2}
+\end{align}
+in closed form
+\
+\begin{align}
+\widetilde\beta_1 
+&=  \mu_1 + \beta_1 - 1 \\
+\widetilde\beta_2
+&=  \frac{\beta_2 - 1}{\beta_1 - 1}\widetilde\beta_1 \\
+\widetilde\nu_1
+&= \mu_1 \\
+\widetilde\nu_2
+&=\mu_2 \frac{\beta_1 - 1}{\beta_2 - 1}
+\end{align}
+the other reparametrization
+\begin{align}
+\beta_1 
+&= \widetilde\nu_1 + \widetilde\beta_1 - 1 \\
+\beta_2 
+&= \widetilde\beta_2 + \widetilde\nu_2 \frac{\mu_2}{\mu_1-1}
+= \widetilde\beta_2 + \widetilde\nu_2 \frac{\mu_2}{\widetilde\nu_1-1}
+ \\
+\mu_1
+&= \widetilde\nu_1 \\
+\mu_2
+&= \widetilde\nu_2\frac{\beta_1}{\beta_2}
+\end{align}
 
 \end{document}

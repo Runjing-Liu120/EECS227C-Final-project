@@ -1,0 +1,69 @@
+\documentclass{article}
+
+\usepackage[a4paper, total={6in, 8.5in}]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}    
+\usepackage{hyperref} 
+\usepackage{url}   
+\usepackage{booktabs}    
+\usepackage{amssymb,amsfonts,amsmath,graphicx}      
+\usepackage{nicefrac}       
+\usepackage{microtype}    
+\usepackage{breqn}
+\usepackage[usenames, dvipsnames]{color}
+\input{stat-macros}
+
+\DeclareMathOperator*{\argminU}{arg\,min}
+\DeclareMathOperator*{\argmaxU}{arg\,max}
+
+
+\begin{document}
+
+
+\section{Gaussian Model} 
+
+We consider a model in which $x\to y\to z$ forms a Markov chain, $p(x)\propto 1$ has a flat prior, and each conditional distribution is Gaussian. It follows that the posterior distribution has form
+\begin{align}
+p(x,y\mid z) \triangleq \cn(\mu^*,\Sigma),
+\end{align}
+where $\mu^* = (\mu_x^*,\mu_y^*)^{\mathsf T}$ and $\Sigma$ has blocks $\Sigma_{xx}, \Sigma_{xy},$ and $\Sigma_{yy}$, and these means and covariances depend on the observation $z$. From Barber [eqn. 8.6.11] we know the conditionals have the form 
+\begin{align}
+p(x\mid z,y) &= \cn(x; \mu_x^*+\Sigma_{xy}\Sigma_{yy}^{-1}(y-\mu_y^*),\Sigma_{xx} - \Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}), \\
+p(y\mid z,x) &= \cn(y; \mu_y^*+\Sigma_{yx}\Sigma_{xx}^{-1}(x-\mu_x^*),\Sigma_{yy} - \Sigma_{yx}\Sigma_{xx}^{-1}\Sigma_{xy}).
+\end{align}
+This gives the form of the CAVI variational factors 
+\begin{align}
+q^{(t+1)}(x) &= \cn(x; \mu_x^*+\Sigma_{xy}\Sigma_{yy}^{-1}(\widehat \mu_y^{(t)}-\mu_y^*),\Sigma_{xx} - \Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}), \\
+q^{(t+1)}(y) &= \cn(y; \mu_y^*+\Sigma_{yx}\Sigma_{xx}^{-1}(\widehat\mu_x^{(t)}-\mu_x^*),\Sigma_{yy} - \Sigma_{yx}\Sigma_{xx}^{-1}\Sigma_{xy}).
+\end{align}
+Where $\widehat\mu^{(t)}$ are the variational means at the $t$-th iteration. Hence 
+\begin{align}
+\widehat\mu_x^{(t+1)}-\mu_x^*
+&= \Sigma_{xy}\Sigma_{yy}^{-1}(\widehat \mu_y^{(t)}-\mu_y^*)
+= \Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}\Sigma_{xx}^{-1}(\widehat\mu_x^{(t)}-\mu_x^*) \\
+\widehat\mu_y^{(t+1)}-\mu_y^*
+&= \Sigma_{yx}\Sigma_{xx}^{-1}\Sigma_{xy}\Sigma_{yy}^{-1}(\widehat\mu_y^{(t)}-\mu_y^*)
+\end{align}
+Note that if $\lambda$ is an operator of one of these matrices, i.e. $\Sigma_{yx}\Sigma_{xx}^{-1}\Sigma_{xy}\Sigma_{yy}^{-1} v = \lambda v$, then 
+$$
+\Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}\Sigma_{xx}^{-1}(\Sigma_{xy}\Sigma_{yy}^{-1} v) = \lambda (\Sigma_{xy}\Sigma_{yy}^{-1}v),
+$$
+and similarly in the other direction, so the spectra of these matrices coincide. Let $\gamma = \|\Sigma_{xy}\Sigma_{yy}^{-1}\Sigma_{yx}\Sigma_{xx}^{-1}\|_2 = \|\Sigma_{yx}\Sigma_{xx}^{-1}\Sigma_{xy}\Sigma_{yy}^{-1}\|_2$, so the rate of convergence of each variational mean is
+\begin{align}
+\left\|\widehat\mu_x^{(t+1)}-\mu_x^*\right\|_2
+&\le \gamma\left\|\widehat\mu_x^{(t)}-\mu_x^*\right\|_2 \\
+\left\|\widehat\mu_y^{(t+1)}-\mu_y^*\right\|_2
+&\le \gamma\left\|\widehat\mu_y^{(t)}-\mu_y^*\right\|_2
+\end{align}
+Hence the rate of convergence for the whole algorithm is $\gamma$, since
+\begin{align}
+\left\|(\widehat\mu_x^{(t+1)},\widehat\mu_y^{(t+1)})-(\mu_x^*,\mu_y^*)\right\|_2^2
+&=\left\|\widehat\mu_x^{(t+1)}-\mu_x^*\right\|_2^2 + \left\|\widehat\mu_y^{(t+1)}-\mu_y^*\right\|_2^2\\
+&\le \gamma^2\left\|\widehat\mu_x^{(t)}-\mu_x^*\right\|_2^2 + \gamma^2\left\|\widehat\mu_y^{(t)}-\mu_y^*\right\|_2^2 \\
+&= \gamma^2\left\|(\widehat\mu_x^{(t)},\widehat\mu_y^{(t)})-(\mu_x^*,\mu_y^*)\right\|_2^2 
+\end{align}
+This rate $\gamma$ matches the rate of convergence of the corresponding block Gibbs sampler [Sahu \& Roberts, 1998, theorem 1].
+
+
+
+\end{document}
