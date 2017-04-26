@@ -12,10 +12,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from copy import deepcopy
 
-np.random.seed(11)
+np.random.seed(1234567898)
 
 # hyper parameters
-gammas = [9,2]
+gammas = [20.,2.]
 beta = np.random.gamma(gammas[0], 1/gammas[1]) # draw beta
 
 # draw mu given beta
@@ -68,7 +68,7 @@ def sufficient_CAVI(iterations, Variational_params, alpha, gammas, Y):
     
     return(Variational_params)
 
-CAVI_iterations = 1000
+CAVI_iterations = 10000
 Variational_params = np.random.uniform(0,10,4)
 post_params = sufficient_CAVI(CAVI_iterations, \
                                      Variational_params, alpha, gammas, Y)
@@ -126,7 +126,7 @@ def ancillary_CAVI(iterations, Variational_params, alpha, gammas, Y):
     
     return(Variational_params)
 
-CAVI_iterations = 1000
+#CAVI_iterations = 1000
 Variational_params = np.random.uniform(0,10,4)
 post_params = ancillary_CAVI(CAVI_iterations, \
                                      Variational_params, alpha, gammas, Y)
@@ -135,3 +135,69 @@ print('posterior means ancillary CAVI')
 print('nu: ', post_params[0]/post_params[1] )
 print('beta: ', post_params[2]/post_params[3] )
 print('mu = beta*nu: ', post_params[0]/post_params[1] * post_params[2]/post_params[3] )
+
+
+
+
+def ASIS_CAVI(iterations, Variational_params, alpha, gammas, Y):
+    # fixed gamma hyperparameters
+    gamma1 = gammas[0]
+    gamma2 = gammas[1]
+
+    # variational parameters 
+    mu1 = Variational_params[0] 
+    mu2 = Variational_params[1] 
+
+    beta1 = Variational_params[2] 
+    beta2 = Variational_params[3]
+
+    nu1 = Variational_params[4] 
+    nu2 = Variational_params[5] 
+    
+    bet_1 = Variational_params[6] 
+    bet_2 = Variational_params[7]
+
+    params = {}
+
+    for i in range(iterations):
+        # SA updates
+        mu1 = alpha + 1
+        mu2 = Y + beta1/beta2
+        
+        beta1 = alpha + gamma1 
+        beta2 = mu1/mu2 + gamma2
+
+        # reparametrize
+        nu1 = mu1
+        nu2 = mu1*(beta1-1)/(beta2-1)
+
+        bet_1 = mu1 + beta1 - 1
+        bet_2 = bet_1*(beta2-1)/(beta1-1)
+
+        # AA updates
+        nu1 = alpha + 1
+        nu2 = 1 + beta1/beta2*Y
+        
+        beta1 = 1 + gamma1 
+        beta2 = nu1/nu2*Y + gamma2
+
+        # reparametrize 
+        beta1 = nu1 + bet_1 - 1
+        beta2 = bet_2 + nu2*mu2/(mu1-1)
+
+        mu1 = nu1
+        mu2 = nu2 * beta1 / beta2
+
+        params[i] = [mu1, mu2, beta1, beta2, nu1, nu2, bet_1, bet_2]
+
+    return params #[mu1, mu2, beta1, beta2, nu1, nu2, bet_1, bet_2]
+
+Variational_params = np.random.uniform(0,10,8)
+post_params = ASIS_CAVI(CAVI_iterations, Variational_params, alpha, gammas, Y)
+
+mu1, mu2, beta1, beta2, nu1, nu2, bet_1, bet_2 = post_params[CAVI_iterations-1]
+
+print('posterior means ASIS CAVI')
+print('nu: ', nu1/nu2 )
+print('beta: ', bet_1/bet_2 )
+#print('mu = beta*nu: ', post_params[0]/post_params[1] * post_params[2]/post_params[3] )
