@@ -117,3 +117,42 @@ def probit_Gibbs(X, t, v_0, burn, iterations):
             print(i)
         
     return(w_post_mean, z_post_mean)
+
+
+from autograd import grad, hessian, jacobian, hessian_vector_product
+import autograd.numpy as anp
+import autograd.scipy as asp
+from scipy import optimize
+from copy import deepcopy as copy
+
+def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
+    par_init = np.concatenate((w_mean,z_loc))
+    kl_wrapper = KLWrapper(par_init, X, t, v_0, w_var)
+    vb_opt = optimize.minimize(
+        lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),#, verbose=True),
+        par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
+        tol=1e-6, options={'maxiter': 500, 'disp': True, 'gtol': 1e-9 })
+    return vb_opt.x
+
+def get_elbo(par, X, t, v_0, w_var):
+    D, N = anp.shape(X)
+    w_mean = par[:D]
+    z_loc  = par[D:]
+    term1 = - (anp.trace(w_var) + anp.dot(w_mean,w_mean)) / (2.*v_0**2)
+    term2 = anp.log((2.*anp.pi*anp.e)**D*anp.linalg.det(w_var)) / 2.
+    term3 = - 0.5 * sum(anp.dot(anp.dot(X[:,n],w_var+anp.outer(w_mean,w_mean)),X[:,n]) for n in range(N))
+    term4 = -0.5 * sum(1 + z_loc[n]**2 + 2*t[n]*(z_loc[n]-anp.dot(w_mean,X[:,n]))*asp.stats.norm.pdf(t[n]*z_loc[n]) / asp.stats.norm.cdf(t[n]*z_loc[n]) for n in range(N))
+    term5 = sum((z_loc[n]*anp.dot(w_mean,X[:,n]))+anp.log(anp.sqrt(2.*anp.pi*anp.e)*asp.stats.norm.cdf(t[n]*z_loc[n])) for n in range(N))
+    return term1 + term2 + term3 + term4 + term5
+
+class KLWrapper(object):
+    def __init__(self, par, X, t, v_0, w_var):
+        self.kl_grad = grad(lambda p : self.kl(p, X, t, v_0, w_var))
+        self.kl_hess = hessian(lambda p : self.kl(p, X, t, v_0, w_var))
+        self.kl_hvp  = hessian_vector_product(lambda p : self.kl(p, X, t, v_0, w_var))
+
+    def kl(self, par, X, t, v_0, w_var, verbose=True):
+        # kl up to a constant
+        kl = -get_elbo(par, X, t, v_0, w_var) 
+        if verbose: print kl
+        return kl

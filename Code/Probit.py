@@ -61,12 +61,12 @@ for i in range(iterations):
         [w_mean, w_var] = \
             probit_reparam(X, t, v_0, w_mean, w_var, z_loc, z_var)
         error[i] = np.linalg.norm(w_mean - w)
-    
 
-plt.figure(1)
+
+#plt.figure(1)
 #plt.clf()
-plt.semilogy(error)
-plt.show()
+#plt.semilogy(error)
+#plt.show()
 
 
 # Gibbs sampler
@@ -74,6 +74,16 @@ plt.show()
 #burn = 10**2
 #[w_post_mean, z_post_mean] = probit_Gibbs(X, t, v_0, burn, Gibbs_iterations)
 
-print('Gibbs posterior mean: \n', w_post_mean)
+#print('Gibbs posterior mean: \n', w_post_mean)
 
 print(method, ' posterior mean: \n', w_mean)
+print(z_loc)
+
+"""
+# re-initialize
+w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
+w_var  = np.identity(D)
+z_loc = np.random.normal(0, 1, N)
+
+print probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
+"""
