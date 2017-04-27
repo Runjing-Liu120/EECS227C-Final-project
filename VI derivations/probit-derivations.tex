@@ -465,5 +465,26 @@ Putting together the pieces, the elbo is given by
 \end{align*}
 
 
+\newpage
+
+\begin{align*}
+\mathcal L = 
+- \frac{1}{2v_0^2}& (\text{Tr}(\Sigma_w) + \hat w^T \hat w) 
++  \frac{1}{2}\log \big((2\pi e)^D |\Sigma_w|) 
++ \sum_{n=1}^N - \frac{1}{2} \Big(x_n^T(\Sigma_w + \hat w \hat w^T)x_n\Big) \\
+&+\sum_{n=1}^N
+ -\frac{1}{2}\Big(1 + \hat z_n^2  + t_n\hat z_n \frac{\phi(-\hat z_n)}{\Phi(t_n\hat z_n)}\Big) 
+ + \hat w^Tx_n\Big(\hat z_n + t_n\frac{\phi(-\hat z_n)}{\Phi(t_n\hat z_n)}\Big) 
+ + \log\Big(\sqrt{2\pi e} (\Phi(t_n\hat z_n))\Big) 
+ - \frac{1}{2}t_n\hat z_n\frac{ \phi(-\hat z_n)}{\Phi(t_n\hat z_n)}\\
+= - \frac{1}{2v_0^2}& (\text{Tr}(\Sigma_w) + \hat w^T \hat w) 
++  \frac{1}{2}\log \big((2\pi e)^D |\Sigma_w|) 
++ \sum_{n=1}^N - \frac{1}{2} \Big(x_n^T(\Sigma_w + \hat w \hat w^T)x_n\Big) \\
+&+\sum_{n=1}^N
+ -\frac{1}{2}\Big(1 + \hat z_n^2  + 2t_n(\hat z_n-\hat w^Tx_n) \frac{\phi(-\hat z_n)}{\Phi(t_n\hat z_n)}\Big) 
+ + \hat w^Tx_n\hat z_n 
+ + \log\Big(\sqrt{2\pi e} (\Phi(t_n\hat z_n))\Big) \\
+\end{align*}
+
 
 \end{document}
