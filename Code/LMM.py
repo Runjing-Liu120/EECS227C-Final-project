@@ -20,7 +20,7 @@ NG = 200      # number of groups
 NObs = NG * N
 
 # variances
-prior_var = {'beta':100, 'mu':100, 'y':1}
+prior_var = {'beta':100., 'mu':100., 'y':1.}
 
 beta = np.random.multivariate_normal(np.zeros(K), np.identity(K))
 
@@ -32,9 +32,10 @@ y_mean = np.dot(X.T, beta) + mu[y_g_vec]
 
 y_vec = np.random.normal(y_mean, prior_var['y'], NObs)
 
+
+"""
 # variational parameters
 beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
-#beta_mean = deepcopy(beta)
 beta_var = np.linalg.inv(1/prior_var['beta']*np.identity(K) \
                                   + 1/prior_var['y'] * np.dot(X,X.T))
 
@@ -50,6 +51,8 @@ mu_error[0] = np.linalg.norm(mu_mean - mu)
 
 for i in range(iterations):
     [beta_mean, mu_mean] = lmm_CAVI(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
+    print beta_mean, mu_mean
+    print mu
     beta_error[i+1] = np.linalg.norm(beta_mean - beta)
     mu_error[i+1] = np.linalg.norm(mu_mean - mu)
     
@@ -58,10 +61,26 @@ plt.figure(1)
 plt.clf()
 plt.plot(beta_error)
 plt.title('beta error')
-    
+plt.show()
+
 plt.figure(2)
 plt.clf()
 plt.plot(mu_error)
 plt.title('mu error')
+plt.show()
+"""
 
 
+
+# variational parameters
+beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
+beta_var = np.linalg.inv(1/prior_var['beta']*np.identity(K) \
+                                  + 1/prior_var['y'] * np.dot(X,X.T))
+
+mu_mean = np.random.normal(0,1, NG)
+mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
+
+results = lmm_Newton(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
+
+beta_post_mean = results.x[:K]
+mu_post_mean   = results.x[K:]
