@@ -9,11 +9,12 @@ import numpy as np
 from scipy.stats import norm
 from copy import deepcopy
 import matplotlib.pyplot as plt
-import warnings
+
 
 # generate data
 
-np.random.seed(21312)
+# np.random.seed(21312)
+np.random.seed(314)
 
 N = 100
 D = 5
@@ -32,7 +33,7 @@ t = np.sign(z)
 # initializations
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
 #w_mean = deepcopy(w)
-w_var  = np.identity(D)
+w_var  = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
 
 z_loc = np.random.normal(0, 1, N)
 #   z_loc = deepcopy(z)
@@ -40,19 +41,22 @@ z_var = 1
 
 
 
-iterations = 1000
+iterations = 100
 error = np.zeros(iterations)
+delta = np.zeros(iterations)
 
 #method = 'PX-VB'
 method = 'CAVI'
 
 for i in range(iterations):
+    w_mean_prev = deepcopy(w_mean)
+    
+    
     # CAVI updates
     if method == 'CAVI': 
         [w_mean, w_var, z_loc, z_trunc_mean] \
             = probit_CAVI(X, t, v_0, w_mean, w_var, z_loc, z_var)
-        error[i] = np.linalg.norm(w_mean - w)
-    
+        
     # PX-VB updates
     if method == 'PX-VB': 
         [w_mean, w_var, z_loc, z_trunc_mean] \
@@ -60,14 +64,19 @@ for i in range(iterations):
             
         [w_mean, w_var] = \
             probit_reparam(X, t, v_0, w_mean, w_var, z_loc, z_var)
-        error[i] = np.linalg.norm(w_mean - w)
+        
+    error[i] = np.linalg.norm(w_mean - w)
+    delta[i] = np.linalg.norm(w_mean - w_mean_prev)
 
 
-#plt.figure(1)
+plt.figure(1)
 #plt.clf()
-#plt.semilogy(error)
-#plt.show()
+plt.semilogy(error)
+plt.show()
 
+plt.figure(2)
+#plt.clf()
+plt.semilogy(delta)
 
 # Gibbs sampler
 #Gibbs_iterations = 10**5
@@ -76,9 +85,14 @@ for i in range(iterations):
 
 #print('Gibbs posterior mean: \n', w_post_mean)
 
+<<<<<<< HEAD
+print(method, ' posterior mean: \n', w_mean)
+# print(z_loc)
+=======
 #print(method, ' posterior mean: \n', w_mean)
 #print(z_loc)
 
+>>>>>>> 67449273f0c83e72c8db7859a96364487da4d169
 
 # re-initialize
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )

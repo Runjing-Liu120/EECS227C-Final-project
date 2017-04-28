@@ -14,8 +14,15 @@ import warnings
 # z should have variance 1
 def trunc_Normal(z_loc, t): 
     
-    Z_ratio1 = norm.pdf(-z_loc)/(1 - norm.cdf(-z_loc))
-    Z_ratio2 = norm.pdf(-z_loc)/norm.cdf(-z_loc)
+    #Z_ratio1 = norm.pdf(-z_loc)/(1 - norm.cdf(-z_loc))
+    #Z_ratio2 = norm.pdf(-z_loc)/norm.cdf(-z_loc)
+    
+    # try doing with logs
+    log_Z_ratio1 = norm.logpdf(-z_loc) - norm.logcdf(z_loc)
+    log_Z_ratio2 = norm.logpdf(-z_loc) - norm.logcdf(-z_loc)
+    
+    Z_ratio1 = np.exp(log_Z_ratio1)
+    Z_ratio2 = np.exp(log_Z_ratio2)
     
     if any(np.isinf(Z_ratio1)) or any(np.isinf(Z_ratio2)):
         print('dividing by 0 in computing truncated normal parameters')
@@ -43,7 +50,7 @@ def probit_CAVI(X, t, v_0, w_mean, w_var, z_loc, z_var):
     # compute mean of z
     [z_trunc_mean, z_trunc_var] = trunc_Normal(z_loc, t)
     
-    w_var = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
+    #w_var = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
     w_mean = np.dot(w_var, np.dot(X, z_trunc_mean))
     
     return(w_mean, w_var, z_loc, z_trunc_mean)
@@ -68,7 +75,7 @@ def probit_reparam(X, t, v_0, w_mean, w_var, z_loc, z_var):
     c2 = c2 * 1/(N+D)
     
     w_mean = w_mean/np.sqrt(c2)
-    w_var = w_var/c2
+    #w_var = w_var/c2
     
     return(w_mean, w_var)
 
@@ -164,5 +171,7 @@ class KLWrapper(object):
     def kl(self, par, X, t, v_0, w_var, verbose=True):
         # kl up to a constant
         kl = -get_elbo(par, X, t, v_0, w_var) 
-        if verbose: print kl
+        if verbose: print(kl)
+
+        #self.elbo.append(-kl)
         return kl

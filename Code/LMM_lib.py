@@ -14,8 +14,7 @@ def lmm_CAVI(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
     # update mu parameters
     for g in range(NG): 
         #mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
-        mu_mean[g] = mu_var * (1/prior_var['mu']) * \
-                np.sum(y[i] - np.dot(X[:,i],beta_mean) for i in range(g*N, (g+1)*N))
+        mu_mean[g] = mu_var * (1/prior_var['mu']) * np.sum(y[i] - np.dot(X[:,i],beta_mean) for i in range(g*N, (g+1)*N))
         
                 
                 
