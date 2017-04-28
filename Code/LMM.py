@@ -53,7 +53,7 @@ beta_var = np.linalg.inv(1/prior_var['beta']*np.identity(K) \
 mu_mean = np.random.normal(0,1, NG)
 mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
 
-iterations = 10
+iterations = 1000
 beta_error = np.zeros(iterations+1)
 mu_error = np.zeros(iterations+1)
 

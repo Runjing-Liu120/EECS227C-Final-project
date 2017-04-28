@@ -36,14 +36,14 @@ from scipy import optimize
 from copy import deepcopy as copy
 from time import time
 
-def lmm_Newton(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
+def lmm_Newton(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K,maxiter=5000):
     par_init = np.concatenate((beta_mean, mu_mean))
     kl_wrapper = KLWrapper(par_init, X, y, beta_var, mu_var, prior_var, NG,N,K)
     
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, y, beta_var, mu_var, prior_var, NG,N,K),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
-        tol=1e-6, options={'maxiter': 5000, 'disp': False, 'gtol': 1e-9 })
+        tol=1e-6, options={'maxiter': maxiter, 'disp': False, 'gtol': 1e-9 })
     return vb_opt#, times, elbo
 
 def get_elbo(par, X, y, beta_var, mu_var, prior_var, NG,N,K):
