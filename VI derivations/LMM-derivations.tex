@@ -374,16 +374,15 @@ Let $X\in \reals^{D\times N}$ be fixed, with columns $x_n, n = 1,..., N$. We als
 \begin{align}
 \beta &\sim \mathcal N(0, \sigma^2_\beta I_{D\times D})\\
 \mu_g &\sim \mathcal N(0, \sigma^2_\mu) \quad \text{for $g= 1, ..., N_G$} \\
-y_n | u_g, \beta &\sim \mathcal N (x_n^T\beta + \mu_{g(n)}, \sigma^2_y)\quad \text{for $n = 1, ..., N$}
+y_n | \mu_g, \beta &\sim \mathcal N (x_n^T\beta + \mu_{g(n)}, \sigma^2_y)\quad \text{for $n = 1, ..., N$}
 \end{align}
 
 \section{Variational distributions}
-We will take a fully factorized distrubtion over $\beta$ and $\{u_g\}_{g=1}^{N_G}$. In particular, 
+We will take a fully factorized distrubtion over $\beta$ and $\{\mu_g\}_{g=1}^{N_G}$. In particular, 
 \begin{align}
 q_\beta(\beta) &\sim \mathcal N (\hat \beta, \Sigma_\beta)\\
 q_{\mu_g}(\mu_g) &\sim \mathcal{N}(\hat\mu_g, \tau^2_{\mu_g})
 \end{align}
-That is, $q_{z_n}$ follows a truncated normal distribution; $z_n$ is restricted to $[0,\infty)$ or $(-\infty,  0]$ when $t_n=1$ or $t_n=-1$, respectively. 
 
 
 \section{CAVI updates}
@@ -391,9 +390,9 @@ We examine the log likelihood, and derive our updates by exploiting the fact tha
 \begin{align*}
 \log p(y, \mu, \beta | X) = -\frac{1}{2\sigma^2_\beta}\beta^T\beta - \frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G} \mu_g^2 - \frac{1}{2\sigma^2_y}\sum_{n=1}^N (y_n - x_n^T\beta - \mu_{g(n)})^2 + K
 \end{align*}
-For a chose $g\in\{1, ..., N_G\}$, we seek the updates for $\mu_g$. We take expectations of the log likelihood with respect to $\beta$ and $\mu_i$ $i\not=g$, dropping constants independent of $\mu_g$: 
+For a choice $g\in\{1, ..., N_G\}$, we seek the updates for $\mu_g$. We take expectations of the log likelihood with respect to the variational distribution of $\beta$ and $\mu_i$ $i\not=g$, dropping constants independent of $\mu_g$: 
 \begin{align*}
-E_{\beta, \mu_{(-g)}} [ \log p(y, \mu, \beta | X) ] &=  - \frac{1}{2\sigma^2_\mu} \mu_g^2 - \frac{1}{2\sigma^2_y}\sum_{n: g(n) = g} E_{\beta, \mu_{(-g)}}[(y_n - x_n^T\beta - \mu_{g})^2] + K\\
+E_{\beta, \mu_{(-g)}} [ \log p(y, \mu, \beta | X) ] &=  - \frac{1}{2\sigma^2_\mu} \mu_g^2 - \frac{1}{2\sigma^2_y}\sum_{n: g(n) = g} E_{\beta}[(y_n - x_n^T\beta - \mu_{g})^2] + K\\
 	&= - \frac{1}{2\sigma^2_\mu} \mu_g^2 - \frac{|\{n : g(n) = g\}|}{2\sigma^2_y} \mu_g^2 + \frac{\mu_g}{\sigma^2_y}\sum_{n: g(n) = g} (y_n - x_n^T\hat\beta) + K
 \end{align*}
 Now recall that the canonical parametrization of a Gaussian in exponential family form is given by $\log p(x) = -\frac{1}{2\sigma^2} x^2 + \frac{\mu}{\sigma^2}x + K$. Comparing these two forms, the updates for $\mu_g$ must satisfy
@@ -440,7 +439,7 @@ Furthermore,
 \begin{align*}
  - \frac{1}{2\sigma^2_y}\sum_{n=1}^N &E_q[(y_n - x_n^T\beta - \mu_{g(n)})^2] \\
  &=  - \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big(E_q[\mu_{g(n)}^2] - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta) + E_q[(x_n^T\beta)^2] - 2y_n (x_n^T\hat\beta)\Big)\\
- &= - \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \hat\beta^TXX^T\hat\beta + \frac{1}{2\sigma^2_y} y^TX^T\hat\beta
+ &= - \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \text{Tr}(X^T(\Sigma_\beta + \hat\beta\hat\beta^T)X) + \frac{1}{2\sigma^2_y} y^TX^T\hat\beta
 \end{align*}
 And the entropy of a Gaussian is given by 
 \begin{align*}
@@ -450,8 +449,8 @@ And the entropy of a Gaussian is given by
 
 Putting the pieces together, 
 \begin{align*}
-\mathcal L = -\frac{1}{2\sigma^2_\beta} (\text{Tr}(\Sigma_\beta) + \hat \beta^T \hat\beta)- &\frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G}(\tau^2_{\mu_g} + \hat\mu_g^2)- \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \hat\beta^TXX^T\hat\beta + \frac{1}{2\sigma^2_y} y^TX^T\hat\beta\\
-&+\sum_{g=1}^{N_G}\frac{1}{2} \log(2\pi e \sigma_{\mu_g}^2) + \frac{1}{2} \log((2\pi e)^k |\Sigma_{\beta}|)
+\mathcal L = -\frac{1}{2\sigma^2_\beta} (\text{Tr}(\Sigma_\beta) + \hat \beta^T \hat\beta)- &\frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G}(\tau^2_{\mu_g} + \hat\mu_g^2)- \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \text{Tr}(X^T(\Sigma_\beta + \hat\beta\hat\beta^T)X) \\
+&+ \frac{1}{2\sigma^2_y} y^TX^T\hat\beta+\sum_{g=1}^{N_G}\frac{1}{2} \log(2\pi e \sigma_{\mu_g}^2) + \frac{1}{2} \log((2\pi e)^k |\Sigma_{\beta}|)
 \end{align*}
  
 \end{document}
