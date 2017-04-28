@@ -138,7 +138,7 @@ def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
         times.append(time()-t0)
 
     vb_opt = optimize.minimize(
-        lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),#, verbose=True),
+        lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
         callback=callbackF,
         tol=1e-6, options={'maxiter': 500, 'disp': True, 'gtol': 1e-9 })
@@ -157,8 +157,6 @@ def get_elbo(par, X, t, v_0, w_var):
 
 class KLWrapper(object):
     def __init__(self, par, X, t, v_0, w_var):
-        #self.elbo    = []
-        #self.kl(par, X, t, v_0, w_var)
         self.kl_grad = grad(lambda p : self.kl(p, X, t, v_0, w_var))
         self.kl_hess = hessian(lambda p : self.kl(p, X, t, v_0, w_var))
         self.kl_hvp  = hessian_vector_product(lambda p : self.kl(p, X, t, v_0, w_var))
@@ -167,5 +165,4 @@ class KLWrapper(object):
         # kl up to a constant
         kl = -get_elbo(par, X, t, v_0, w_var) 
         if verbose: print kl
-        #self.elbo.append(-kl)
         return kl
