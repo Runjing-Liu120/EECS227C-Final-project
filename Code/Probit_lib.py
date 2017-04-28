@@ -124,15 +124,25 @@ import autograd.numpy as anp
 import autograd.scipy as asp
 from scipy import optimize
 from copy import deepcopy as copy
+from time import time
 
 def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
     par_init = np.concatenate((w_mean,z_loc))
-    kl_wrapper = KLWrapper(par_init, X, t, v_0, w_var)
+    kl_wrapper = KLWrapper(par_init, X, t, v_0, w_var)    
+
+    elbo = []
+    times= []
+    t0 = time()
+    def callbackF(par):
+        elbo.append(-kl_wrapper.kl(par, X, t, v_0, w_var))
+        times.append(time()-t0)
+
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),#, verbose=True),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
+        callback=callbackF,
         tol=1e-6, options={'maxiter': 500, 'disp': True, 'gtol': 1e-9 })
-    return vb_opt.x
+    return vb_opt, times, elbo
 
 def get_elbo(par, X, t, v_0, w_var):
     D, N = anp.shape(X)
@@ -147,6 +157,8 @@ def get_elbo(par, X, t, v_0, w_var):
 
 class KLWrapper(object):
     def __init__(self, par, X, t, v_0, w_var):
+        #self.elbo    = []
+        #self.kl(par, X, t, v_0, w_var)
         self.kl_grad = grad(lambda p : self.kl(p, X, t, v_0, w_var))
         self.kl_hess = hessian(lambda p : self.kl(p, X, t, v_0, w_var))
         self.kl_hvp  = hessian_vector_product(lambda p : self.kl(p, X, t, v_0, w_var))
@@ -155,4 +167,5 @@ class KLWrapper(object):
         # kl up to a constant
         kl = -get_elbo(par, X, t, v_0, w_var) 
         if verbose: print kl
+        #self.elbo.append(-kl)
         return kl

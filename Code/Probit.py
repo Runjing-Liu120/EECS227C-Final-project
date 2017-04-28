@@ -76,14 +76,23 @@ for i in range(iterations):
 
 #print('Gibbs posterior mean: \n', w_post_mean)
 
-print(method, ' posterior mean: \n', w_mean)
-print(z_loc)
+#print(method, ' posterior mean: \n', w_mean)
+#print(z_loc)
 
-"""
+
 # re-initialize
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
 w_var  = np.identity(D)
 z_loc = np.random.normal(0, 1, N)
 
-print probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
-"""
+results, times, elbo = probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
+w_post_mean = results.x[:D]
+z_post_loc  = results.x[D:]
+
+print "\n\n\n"
+print times, elbo
+
+plt.plot(times, elbo)
+plt.xlabel("Time (seconds)")
+plt.ylabel("ELBO")
+plt.show()
