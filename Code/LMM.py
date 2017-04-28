@@ -10,11 +10,11 @@ from scipy.stats import norm
 from copy import deepcopy
 import matplotlib.pyplot as plt
 
-# np.random.seed(123242)
+np.random.seed(123242)
 
-N = 1     # observations per group
+N = 2     # observations per group
 K = 1      # dimension of regressors
-NG = 1      # number of groups
+NG = 6      # number of groups
 
 
 
@@ -31,9 +31,9 @@ beta = np.random.multivariate_normal(np.ones(K)*5, np.identity(K))
 mu = np.random.normal(10, 20, NG)
 prior_var = {'beta':100., 'mu':100., 'y':1.}
 
-# X = np.random.random(K * NObs).reshape(K, NObs) - 0.5
+X = np.random.random(K * NObs).reshape(K, NObs) - 0.5
 #x_mat = np.random.random(K * NObs).reshape(NObs, K) - 0.5
-X = np.identity(1)
+#X = np.identity(1)
 
 # try with correlated design matrix
 
@@ -44,7 +44,7 @@ y_mean = np.dot(X.T, beta) + mu[y_g_vec]
 y_vec = np.random.normal(y_mean, prior_var['y'], NObs)
 
 
-"""
+
 # variational parameters
 beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
 beta_var = np.linalg.inv(1/prior_var['beta']*np.identity(K) \
@@ -62,12 +62,16 @@ mu_error[0] = np.linalg.norm(mu_mean - mu)
 
 for i in range(iterations):
     [beta_mean, mu_mean] = lmm_CAVI(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
-    print beta_mean, mu_mean
-    print mu
+    #print beta_mean, mu_mean
+    #print mu
     beta_error[i+1] = np.linalg.norm(beta_mean - beta)
     mu_error[i+1] = np.linalg.norm(mu_mean - mu)
-    print(beta_mean)
+    #print(beta_mean)
+
+print(beta_mean,mu_mean)
+
     
+"""
 plt.figure(1)
 plt.clf()
 plt.plot(beta_error)
@@ -95,3 +99,6 @@ results = lmm_Newton(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, 
 
 beta_post_mean = results.x[:K]
 mu_post_mean   = results.x[K:]
+
+print(beta_post_mean,mu_post_mean)
+print(beta,mu)
