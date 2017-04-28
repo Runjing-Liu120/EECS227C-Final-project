@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # np.random.seed(21312)
 np.random.seed(314)
 
-N = 100
+N = 500
 D = 5
 
 v_0 = 100 # prior variance of w
