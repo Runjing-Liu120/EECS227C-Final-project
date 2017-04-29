@@ -40,11 +40,19 @@ def lmm_Newton(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K,max
     par_init = np.concatenate((beta_mean, mu_mean))
     kl_wrapper = KLWrapper(par_init, X, y, beta_var, mu_var, prior_var, NG,N,K)
     
+    elbo = []
+    times= []
+    t0 = time()
+    def callbackF(par):
+        elbo.append(-kl_wrapper.kl(par, X, y, beta_var, mu_var, prior_var, NG,N,K))
+        times.append(time()-t0)
+
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, y, beta_var, mu_var, prior_var, NG,N,K),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
+        callback=callbackF,
         tol=1e-6, options={'maxiter': maxiter, 'disp': False, 'gtol': 1e-9 })
-    return vb_opt#, times, elbo
+    return vb_opt, times, elbo
 
 def get_elbo(par, X, y, beta_var, mu_var, prior_var, NG,N,K):
     NObs = N*NG
@@ -54,8 +62,13 @@ def get_elbo(par, X, y, beta_var, mu_var, prior_var, NG,N,K):
     term2 = - sum(mu_var+mu_mean[g]**2 for g in range(NG)) / (2.*prior_var['mu']) \
             - sum(mu_var+mu_mean[n // N]**2 for n in range(NObs)) / (2.*prior_var['y'])
     term3 = sum(mu_mean[n // N]*(y[n]-anp.dot(X[:,n],beta_mean)) for n in range(NObs)) / prior_var['y']
-    term4 = (anp.dot(y,anp.dot(X.T,beta_mean))-anp.linalg.norm(anp.dot(X.T,beta_mean))**2) / (2.*prior_var['y'])
-    term5 = NG*anp.log(2.*anp.pi*anp.e*prior_var['mu']) / 2. + anp.log((2.*anp.pi*anp.e)**K*anp.linalg.det(beta_var)) / 2.
+    #term4 = (anp.dot(y,anp.dot(X.T,beta_mean))-anp.linalg.norm(anp.dot(X.T,beta_mean))**2) / (2.*prior_var['y'])
+
+    #print "A: ", (anp.dot(y,anp.dot(X.T,beta_mean))-anp.linalg.norm(anp.dot(X.T,beta_mean))**2) / (2.*prior_var['y'])
+    term4 = (anp.dot(y,anp.dot(X.T,beta_mean)) - anp.trace(anp.dot(X.T,anp.dot(beta_var+anp.outer(beta_mean,beta_mean),X)))) / (2.*prior_var['y'])
+    #print anp.trace(anp.dot(X.T,anp.dot(beta_var, X)))
+    #print "B: ", (anp.dot(y,anp.dot(X.T,beta_mean)) - anp.trace(anp.dot(X.T,anp.dot(beta_var+anp.outer(beta_mean,beta_mean),X)))) / (2.*prior_var['y'])
+    term5 = NG*anp.log(2.*anp.pi*anp.e*mu_var) / 2. + anp.log((2.*anp.pi*anp.e)**K*anp.linalg.det(beta_var)) / 2.
     return term1 + term2 + term3 + term4 + term5
 
 class KLWrapper(object):

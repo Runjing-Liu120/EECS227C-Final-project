@@ -12,8 +12,8 @@ import matplotlib.pyplot as plt
 
 np.random.seed(123242)
 
-N = 2     # observations per group
-K = 1      # dimension of regressors
+N = 10     # observations per group
+K = 2      # dimension of regressors
 NG = 6      # number of groups
 
 
@@ -95,10 +95,25 @@ beta_var = np.linalg.inv(1/prior_var['beta']*np.identity(K) \
 mu_mean = np.random.normal(0,1, NG)
 mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
 
-results = lmm_Newton(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
+results, _, elbo = lmm_Newton(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
+
+plt.plot(elbo)
+plt.show()
 
 beta_post_mean = results.x[:K]
 mu_post_mean   = results.x[K:]
 
 print(beta_post_mean,mu_post_mean)
 print(beta,mu)
+
+
+from LMM_lib import KLWrapper
+
+par1 = np.concatenate((beta_post_mean, mu_post_mean))
+par2 = np.concatenate((beta, mu))
+kl_wrapper = KLWrapper(par1, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
+
+
+print "\n\n"
+print kl_wrapper.kl(par1, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
+print kl_wrapper.kl(par2, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
