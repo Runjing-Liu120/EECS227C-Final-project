@@ -13,17 +13,16 @@ def lmm_CAVI(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
 
     # update mu parameters
     for g in range(NG): 
-        #mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
-        mu_mean[g] = mu_var * (1/prior_var['mu']) * np.sum(y[i] - np.dot(X[:,i],beta_mean) for i in range(g*N, (g+1)*N))
+        mu_mean[g] = mu_var * (1/prior_var['y']) * np.sum(y[g*N:(g+1)*N] - np.dot(X[:,g*N:(g+1)*N].T,beta_mean)) 
         
                 
                 
     # update beta
     # beta_var = np.linalg.inv(1/prior['beta']*np.identity(K) \
         #                          + 1/prior_var['y'] * np.dot(X,X.T))
-    
+    NObs = N*NG
     y_g_vec = np.array([ g for g in range(NG) for n in range(N) ])
-    canonical_beta_mean = 1/prior_var['y'] * np.dot(X, y - mu_mean[y_g_vec])
+    canonical_beta_mean = (np.dot(X, y) - sum(mu_mean[n//N]*X[:,n] for n in range(NObs))) / prior_var['y']
     beta_mean = np.dot(beta_var, canonical_beta_mean)
     
     return(beta_mean, mu_mean)
@@ -65,7 +64,7 @@ def get_elbo(par, X, y, beta_var, mu_var, prior_var, NG,N,K):
     #term4 = (anp.dot(y,anp.dot(X.T,beta_mean))-anp.linalg.norm(anp.dot(X.T,beta_mean))**2) / (2.*prior_var['y'])
 
     #print "A: ", (anp.dot(y,anp.dot(X.T,beta_mean))-anp.linalg.norm(anp.dot(X.T,beta_mean))**2) / (2.*prior_var['y'])
-    term4 = (anp.dot(y,anp.dot(X.T,beta_mean)) - anp.trace(anp.dot(X.T,anp.dot(beta_var+anp.outer(beta_mean,beta_mean),X)))) / (2.*prior_var['y'])
+    term4 = (2.*anp.dot(y,anp.dot(X.T,beta_mean)) - anp.trace(anp.dot(X.T,anp.dot(beta_var+anp.outer(beta_mean,beta_mean),X)))) / (2.*prior_var['y'])
     #print anp.trace(anp.dot(X.T,anp.dot(beta_var, X)))
     #print "B: ", (anp.dot(y,anp.dot(X.T,beta_mean)) - anp.trace(anp.dot(X.T,anp.dot(beta_var+anp.outer(beta_mean,beta_mean),X)))) / (2.*prior_var['y'])
     term5 = NG*anp.log(2.*anp.pi*anp.e*mu_var) / 2. + anp.log((2.*anp.pi*anp.e)**K*anp.linalg.det(beta_var)) / 2.

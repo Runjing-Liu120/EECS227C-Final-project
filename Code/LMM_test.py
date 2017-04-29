@@ -12,42 +12,41 @@ import matplotlib.pyplot as plt
 
 np.random.seed(123242)
 
+# Simulate data
 N = 10     # observations per group
-K = 2      # dimension of regressors
-NG = 6      # number of groups
-
-
+K = 5      # dimension of regressors
+NG = 30      # number of groups
 
 # Generate data
 NObs = NG * N
+true_beta = np.array(range(K))
+true_beta = true_beta - np.mean(true_beta)
+true_y_sd = 1.0
+true_y_info = 1 / true_y_sd**2
 
-# variances
-prior_var = {'beta':10, 'mu':100, 'y':1}
+true_mu = 1.0
+true_mu_sd = 20.0
+true_mu_info = 1 / true_mu_sd**2
+true_u_sufficient = np.random.normal(true_mu, 1 / np.sqrt(true_mu_info), NG)
+true_u_ancillary = true_u_sufficient - true_mu
 
-beta = np.random.multivariate_normal(np.ones(K)*5, np.identity(K))
-#beta = np.arange(K)
-#beta = beta - np.mean(beta)
+x_mat = np.random.random(K * NObs).reshape(NObs, K) - 0.5
+x_rot = np.full((K, K), 0.5)
+for k in range(K):
+    x_rot[k, k] = 1.0
+X = np.matmul(x_mat, x_rot).T
 
-mu = np.random.normal(10, 20, NG)
-prior_var = {'beta':100., 'mu':100., 'y':1.}
-
-X = np.random.random(K * NObs).reshape(K, NObs) - 0.5
-#x_mat = np.random.random(K * NObs).reshape(NObs, K) - 0.5
-#X = np.identity(1)
-
-# try with correlated design matrix
 
 
 y_g_vec = np.array([ g for g in range(NG) for n in range(N) ])
-y_mean = np.dot(X.T, beta) + mu[y_g_vec]
-
-y_vec = np.random.normal(y_mean, prior_var['y'], NObs)
-
-### END DATA
+true_mean = np.matmul(x_mat, true_beta) + true_u_sufficient[y_g_vec]
+y_vec = np.random.normal(true_mean, 1 / np.sqrt(true_y_info), NG * N)
 
 
+prior_var = {'mu': true_mu_sd**2, 'y': true_y_sd**2, 'beta': 100}
 
 
+#print X.shape, y_vec.shape, 
 
 ##### NEWTON METHOD #####
 
@@ -68,19 +67,6 @@ beta_post_mean = results.x[:K]
 mu_post_mean   = results.x[K:]
 
 print(beta_post_mean,mu_post_mean)
-#print(beta,mu)
-
-
-#from LMM_lib import KLWrapper
-
-#par1 = np.concatenate((beta_post_mean, mu_post_mean))
-#par2 = np.concatenate((beta, mu))
-#kl_wrapper = KLWrapper(par1, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
-
-
-#print "\n\n"
-#print kl_wrapper.kl(par1, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
-#print kl_wrapper.kl(par2, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
 
 ##### NEWTON METHOD #####
 
@@ -102,21 +88,21 @@ iterations = 10
 beta_error = np.zeros(iterations+1)
 mu_error = np.zeros(iterations+1)
 
-beta_error[0] = np.linalg.norm(beta_mean - beta)
-mu_error[0] = np.linalg.norm(mu_mean - mu)
+#beta_error[0] = np.linalg.norm(beta_mean - beta)
+#mu_error[0] = np.linalg.norm(mu_mean - mu)
 
 for i in range(iterations):
     [beta_mean, mu_mean] = lmm_CAVI(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
     #print beta_mean, mu_mean
     #print mu
-    beta_error[i+1] = np.linalg.norm(beta_mean - beta)
-    mu_error[i+1] = np.linalg.norm(mu_mean - mu)
+    #beta_error[i+1] = np.linalg.norm(beta_mean - beta)
+    #mu_error[i+1] = np.linalg.norm(mu_mean - mu)
     #print(beta_mean)
 
 print(beta_mean,mu_mean)
 
     
-
+"""
 plt.figure(1)
 plt.clf()
 plt.plot(beta_error)
@@ -130,3 +116,4 @@ plt.title('mu error')
 plt.show()
 
 
+"""
