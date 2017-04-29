@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # np.random.seed(21312)
 np.random.seed(314)
 
-N = 500
+N = 10
 D = 5
 
 v_0 = 100 # prior variance of w
@@ -28,7 +28,6 @@ w = np.random.multivariate_normal(np.zeros(D), np.identity(D))
 z = np.random.multivariate_normal(np.dot(w,X), np.identity(N))
 
 t = np.sign(z)
-
 
 # initializations
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
@@ -67,7 +66,8 @@ for i in range(iterations):
         
     error[i] = np.linalg.norm(w_mean - w)
     delta[i] = np.linalg.norm(w_mean - w_mean_prev)
-
+    
+    
 
 plt.figure(1)
 #plt.clf()
@@ -78,6 +78,8 @@ plt.figure(2)
 #plt.clf()
 plt.semilogy(delta)
 
+
+"""
 # Gibbs sampler
 #Gibbs_iterations = 10**5
 #burn = 10**2
@@ -85,15 +87,13 @@ plt.semilogy(delta)
 
 #print('Gibbs posterior mean: \n', w_post_mean)
 
-<<<<<<< HEAD
 print(method, ' posterior mean: \n', w_mean)
 # print(z_loc)
-=======
 #print(method, ' posterior mean: \n', w_mean)
 #print(z_loc)
 
->>>>>>> 67449273f0c83e72c8db7859a96364487da4d169
-
+"""
+"""
 # re-initialize
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
 w_var  = np.identity(D)
@@ -103,10 +103,12 @@ results, times, elbo = probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
 w_post_mean = results.x[:D]
 z_post_loc  = results.x[D:]
 
-print "\n\n\n"
-print times, elbo
+print("\n\n\n")
+print(elbo)
 
-plt.plot(times, elbo)
+
+plt.plot(elbo)
 plt.xlabel("Time (seconds)")
 plt.ylabel("ELBO")
 plt.show()
+"""

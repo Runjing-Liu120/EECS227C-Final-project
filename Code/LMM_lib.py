@@ -79,5 +79,5 @@ class KLWrapper(object):
     def kl(self, par, X, y, beta_var, mu_var, prior_var, NG,N,K,verbose=False):
         # kl up to a constant
         kl = -get_elbo(par, X, y, beta_var, mu_var, prior_var, NG,N,K)
-        if verbose: print kl
+        if verbose: print(kl)
         return kl
