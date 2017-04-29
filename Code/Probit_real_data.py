@@ -32,8 +32,8 @@ z_loc = np.random.normal(0, 1, N)
 z_var = 1
 
 
-
-iterations = 1000
+"""
+iterations = 100
 delta = np.zeros(iterations)
 elbo = np.zeros(iterations)
 #method = 'PX-VB'
@@ -59,8 +59,8 @@ for i in range(iterations):
     delta[i] = np.linalg.norm(w_mean - w_mean_prev)
     
     # compute elbo
-    #par = np.concatenate((w_mean, z_loc))
-    #elbo[i] = get_elbo(par, X, t, v_0, w_var)
+    par = np.concatenate((w_mean, z_loc))
+    elbo[i] = get_elbo(par, X, t, v_0, w_var)
     
     if (i % 10) == 0:
         print(i)
@@ -71,7 +71,9 @@ plt.figure(1)
 plt.semilogy(delta)
 plt.show()
 
+"""
 
+"""
 # Gibbs sampler
 #Gibbs_iterations = 10**5
 #burn = 10**2
@@ -88,5 +90,4 @@ w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
 w_var  = np.identity(D)
 z_loc = np.random.normal(0, 1, N)
 
-print probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
-"""
+print(probit_Newton(X, t, v_0, w_mean, w_var, z_loc))
