@@ -439,7 +439,7 @@ Furthermore,
 \begin{align*}
  - \frac{1}{2\sigma^2_y}\sum_{n=1}^N &E_q[(y_n - x_n^T\beta - \mu_{g(n)})^2] \\
  &=  - \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big(E_q[\mu_{g(n)}^2] - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta) + E_q[(x_n^T\beta)^2] - 2y_n (x_n^T\hat\beta)\Big)\\
- &= - \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \text{Tr}(X^T(\Sigma_\beta + \hat\beta\hat\beta^T)X) + \frac{1}{2\sigma^2_y} y^TX^T\hat\beta
+ &= - \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \text{Tr}(X^T(\Sigma_\beta + \hat\beta\hat\beta^T)X) + \frac{1}{\sigma^2_y} y^TX^T\hat\beta
 \end{align*}
 And the entropy of a Gaussian is given by 
 \begin{align*}
@@ -450,7 +450,7 @@ And the entropy of a Gaussian is given by
 Putting the pieces together, 
 \begin{align*}
 \mathcal L = -\frac{1}{2\sigma^2_\beta} (\text{Tr}(\Sigma_\beta) + \hat \beta^T \hat\beta)- &\frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G}(\tau^2_{\mu_g} + \hat\mu_g^2)- \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \text{Tr}(X^T(\Sigma_\beta + \hat\beta\hat\beta^T)X) \\
-&+ \frac{1}{2\sigma^2_y} y^TX^T\hat\beta+\sum_{g=1}^{N_G}\frac{1}{2} \log(2\pi e \tau_{\mu_g}^2) + \frac{1}{2} \log((2\pi e)^D |\Sigma_{\beta}|)
+&+ \frac{1}{\sigma^2_y} y^TX^T\hat\beta+\sum_{g=1}^{N_G}\frac{1}{2} \log(2\pi e \tau_{\mu_g}^2) + \frac{1}{2} \log((2\pi e)^D |\Sigma_{\beta}|)
 \end{align*}
  
 \end{document}
