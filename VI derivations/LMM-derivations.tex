@@ -422,7 +422,7 @@ And comparing with the canonical exponential family paramatrization, we conclude
 We compute the ELBO
 \begin{align}
 \mathcal L &= E_q[\log p(y,\mu,\beta|X)] + H(q) \\
-	&=-\frac{1}{2\sigma^2_\beta}E_q[\beta^T\beta] - \frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G} E_q[\mu_g^2] - \frac{1}{2\sigma^2_y}\sum_{n=1}^N E_q[(y_n - x_n^T\beta - \mu_{g(n)})^2] -\sum_{g=1}^{N_g}E_q[q_{\mu_g}] - E_q[q_\beta(\beta)]
+	&=-\frac{1}{2\sigma^2_\beta}E_q[\beta^T\beta] - \frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G} E_q[\mu_g^2] - \frac{1}{2\sigma^2_y}\sum_{n=1}^N E_q[(y_n - x_n^T\beta - \mu_{g(n)})^2] -\sum_{g=1}^{N_g}E_q[\log q_{\mu_g}] - E_q[\log q_\beta(\beta)]
 \end{align} 
 
 We examine each of these terms individually. First, 
@@ -443,14 +443,14 @@ Furthermore,
 \end{align*}
 And the entropy of a Gaussian is given by 
 \begin{align*}
--E_q[q_{\mu_g}(\mu_g)] = \frac{1}{2} \log(2\pi e \sigma_{\mu_g}^2)\\
--E_q[q_{\beta}(\beta)] = \frac{1}{2} \log((2\pi e)^k |\Sigma_{\beta}|)
+-E_q[\log q_{\mu_g}(\mu_g)] = \frac{1}{2} \log(2\pi e \sigma_{\mu_g}^2)\\
+-E_q[\log q_{\beta}(\beta)] = \frac{1}{2} \log((2\pi e)^D |\Sigma_{\beta}|)
 \end{align*}
 
 Putting the pieces together, 
 \begin{align*}
 \mathcal L = -\frac{1}{2\sigma^2_\beta} (\text{Tr}(\Sigma_\beta) + \hat \beta^T \hat\beta)- &\frac{1}{2\sigma^2_\mu}\sum_{g=1}^{N_G}(\tau^2_{\mu_g} + \hat\mu_g^2)- \frac{1}{2\sigma^2_y}\sum_{n=1}^N \Big((\tau^2_{\mu_{g(n)}} + \hat\mu_{g(n)}^2) - 2\hat\mu_{g(n)}(y_n - x_n^T\hat\beta)\Big) - \frac{1}{2\sigma^2_y} \text{Tr}(X^T(\Sigma_\beta + \hat\beta\hat\beta^T)X) \\
-&+ \frac{1}{2\sigma^2_y} y^TX^T\hat\beta+\sum_{g=1}^{N_G}\frac{1}{2} \log(2\pi e \sigma_{\mu_g}^2) + \frac{1}{2} \log((2\pi e)^k |\Sigma_{\beta}|)
+&+ \frac{1}{2\sigma^2_y} y^TX^T\hat\beta+\sum_{g=1}^{N_G}\frac{1}{2} \log(2\pi e \tau_{\mu_g}^2) + \frac{1}{2} \log((2\pi e)^D |\Sigma_{\beta}|)
 \end{align*}
  
 \end{document}
