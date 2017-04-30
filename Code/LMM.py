@@ -12,44 +12,36 @@ import matplotlib.pyplot as plt
 
 np.random.seed(123242)
 
+# 10, 2, 6
 N = 10     # observations per group
-K = 2      # dimension of regressors
-NG = 6      # number of groups
+K = 5      # dimension of regressors
+NG = 9      # number of groups
 
 
-
-# Generate data
+##### GENERATE DATA #####
 NObs = NG * N
 
 # variances
 prior_var = {'beta':10, 'mu':100, 'y':1}
 
-beta = np.random.multivariate_normal(np.ones(K)*5, np.identity(K))
-#beta = np.arange(K)
-#beta = beta - np.mean(beta)
+beta = np.arange(K)
+beta = beta - np.mean(beta)
 
 mu = np.random.normal(10, 20, NG)
 prior_var = {'beta':100., 'mu':100., 'y':1.}
 
 X = np.random.random(K * NObs).reshape(K, NObs) - 0.5
-#x_mat = np.random.random(K * NObs).reshape(NObs, K) - 0.5
-#X = np.identity(1)
-
-# try with correlated design matrix
-
 
 y_g_vec = np.array([ g for g in range(NG) for n in range(N) ])
 y_mean = np.dot(X.T, beta) + mu[y_g_vec]
 
 y_vec = np.random.normal(y_mean, prior_var['y'], NObs)
 
-### END DATA
-
-
 
 
 
 ##### NEWTON METHOD #####
+print "Running Newton"
 
 # variational parameters
 beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
@@ -59,36 +51,18 @@ beta_var = np.linalg.inv(1/prior_var['beta']*np.identity(K) \
 mu_mean = np.random.normal(0,1, NG)
 mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
 
-results, _, elbo = lmm_Newton(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
-
-#plt.plot(elbo)
-#plt.show()
+results, _, elbo_newt, pars = lmm_Newton(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K,maxiter=10)
+delta_newt_beta = [np.linalg.norm(pars[i][:K] - pars[i+1][:K]) for i in range(len(pars)-1)] 
+delta_newt_mu   = [np.linalg.norm(pars[i][K:] - pars[i+1][K:]) for i in range(len(pars)-1)] 
+d_newt_beta = [np.linalg.norm(par[:K] - beta) for par in pars]
+d_newt_mu   = [np.linalg.norm(par[K:] - mu) for par in pars]
 
 beta_post_mean = results.x[:K]
 mu_post_mean   = results.x[K:]
 
-print(beta_post_mean,mu_post_mean)
-#print(beta,mu)
 
-
-#from LMM_lib import KLWrapper
-
-#par1 = np.concatenate((beta_post_mean, mu_post_mean))
-#par2 = np.concatenate((beta, mu))
-#kl_wrapper = KLWrapper(par1, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
-
-
-#print "\n\n"
-#print kl_wrapper.kl(par1, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
-#print kl_wrapper.kl(par2, X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
-
-##### NEWTON METHOD #####
-
-
-
-
-
-
+##### CAVI METHOD #####
+print "Running CAVI"
 
 # variational parameters
 beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
@@ -99,34 +73,77 @@ mu_mean = np.random.normal(0,1, NG)
 mu_var = (1/prior_var['mu'] + N/prior_var['y'])**(-1)
 
 iterations = 10
-beta_error = np.zeros(iterations+1)
-mu_error = np.zeros(iterations+1)
-
-beta_error[0] = np.linalg.norm(beta_mean - beta)
-mu_error[0] = np.linalg.norm(mu_mean - mu)
+d_cavi_beta = np.zeros(iterations)
+d_cavi_mu   = np.zeros(iterations)
+delta_cavi_beta = np.zeros(iterations)
+delta_cavi_mu   = np.zeros(iterations)
+elbo_cavi       = np.zeros(iterations)
 
 for i in range(iterations):
-    [beta_mean, mu_mean] = lmm_CAVI(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
-    #print beta_mean, mu_mean
-    #print mu
-    beta_error[i+1] = np.linalg.norm(beta_mean - beta)
-    mu_error[i+1] = np.linalg.norm(mu_mean - mu)
-    #print(beta_mean)
+	beta_mean_prev = deepcopy(beta_mean)
+	mu_mean_prev   = deepcopy(mu_mean)
 
-print(beta_mean,mu_mean)
+	elbo_cavi[i] = get_elbo(np.concatenate((beta_mean, mu_mean)), X, y_vec, beta_var, mu_var, prior_var, NG,N,K)
 
+	d_cavi_beta[i] = np.linalg.norm(beta_mean - beta_post_mean)
+	d_cavi_mu[i]   = np.linalg.norm(mu_mean - mu_post_mean)
+	[beta_mean, mu_mean] = lmm_CAVI(X, y_vec, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K)
+	delta_cavi_mu[i]   = np.linalg.norm(beta_mean - beta_mean_prev)
+	delta_cavi_beta[i] = np.linalg.norm(mu_mean - mu_mean_prev)
+	
+
+print np.linalg.norm(beta_mean - beta_post_mean)
+print np.linalg.norm(mu_mean - mu_post_mean)
     
-
+"""
 plt.figure(1)
 plt.clf()
 plt.plot(beta_error)
 plt.title('beta error')
-plt.show()
+
 
 plt.figure(2)
 plt.clf()
 plt.plot(mu_error)
 plt.title('mu error')
 plt.show()
+"""
 
 
+plt.figure(1)
+plt.plot(elbo_cavi,'r')
+plt.plot(elbo_newt,'g')
+plt.xlabel("iter") 
+plt.ylabel("ELBO")
+plt.legend(['CAVI','NCG'])
+
+
+plt.figure(2)
+plt.semilogy(d_cavi_mu,'r')
+#plt.plot(d_newt_mu,'b')
+plt.xlabel("iter") 
+plt.title("Distance to Newton (mu)")
+plt.legend(['CAVI','NCG'])
+
+plt.figure(3)
+plt.semilogy(d_cavi_beta,'r')
+#plt.plot(d_newt_beta,'b')
+plt.xlabel("iter") 
+plt.title("Distance to Newton (beta)")
+plt.legend(['CAVI','NCG'])
+"""
+plt.figure(4)
+plt.plot(delta_cavi_mu,'r')
+plt.plot(delta_newt_mu,'b')
+plt.xlabel("iter") 
+plt.title("Pairwise Distances")
+plt.legend(['CAVI','NCG'])
+
+plt.figure(5)
+plt.plot(delta_cavi_beta,'r')
+plt.plot(delta_newt_beta,'b')
+plt.xlabel("iter")
+plt.title("Pairwise Distances")
+plt.legend(['CAVI','NCG'])
+"""
+plt.show()

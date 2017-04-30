@@ -48,17 +48,19 @@ def lmm_Newton(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K,max
     
     elbo = []
     times= []
+    pars = []
     t0 = time()
     def callbackF(par):
         elbo.append(-kl_wrapper.kl(par, X, y, beta_var, mu_var, prior_var, NG,N,K))
         times.append(time()-t0)
+        pars.append(par)
 
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, y, beta_var, mu_var, prior_var, NG,N,K),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
         callback=callbackF,
         tol=1e-6, options={'maxiter': maxiter, 'disp': False, 'gtol': 1e-9 })
-    return vb_opt, times, elbo
+    return vb_opt, times, elbo, pars
 
 def get_elbo(par, X, y, beta_var, mu_var, prior_var, NG,N,K):
     NObs = N*NG
