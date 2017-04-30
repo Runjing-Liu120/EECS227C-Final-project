@@ -10,6 +10,7 @@ from scipy.stats import norm
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import pickle
+from time import time
 
 # import data
 data = np.loadtxt("../Data/spambase.data", delimiter=',')
@@ -39,6 +40,9 @@ print(method, ' posterior mean: \n', w_mean)
 
 """
 
+
+
+"""
 ## Newton method
 
 # initialize
@@ -62,14 +66,19 @@ plt.ylabel("ELBO")
 plt.show()
 
 # save output of Newton
-output1 = open('Newton_elbo_probit.pickle', 'wb')
+output0 = open('outputs/Newton_times_probit.pickle', 'wb')
+pickle.dump(times, output0)
+
+output1 = open('outputs/Newton_elbo_probit.pickle', 'wb')
 pickle.dump(elbo, output1)
 
-output2 = open('Newton_Wmean_probit.pickle', 'wb')
+output2 = open('outputs/Newton_Wmean_probit.pickle', 'wb')
 pickle.dump(w_post_mean, output2)
-
-#***************
 """
+
+output2 = open('outputs/Newton_Wmean_probit.pickle', 'rb')
+w_post_mean = pickle.load(output2)
+
 
 # re-initializations
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
@@ -81,13 +90,16 @@ z_var = 1
 
 iterations = 1000
 delta = np.zeros(iterations)
-elbo = np.zeros(iterations)
+elbo_CAVI = np.zeros(iterations)
+times_CAVI = np.zeros(iterations)
 error = np.zeros(iterations+1)
-error[0] = np.linalg.norm(w_mean - w_poast_mean)
+error[0] = np.linalg.norm(w_mean - w_post_mean)
 #method = 'PX-VB'
 method = 'CAVI'
 
+t0 = time()
 for i in range(iterations):
+    times_CAVI[i] = time() - t0
     w_mean_prev = deepcopy(w_mean)
     # CAVI updates
     if method == 'CAVI': 
@@ -107,18 +119,18 @@ for i in range(iterations):
     # compute elbo
     par = np.concatenate((w_mean, z_loc))
     elbo_CAVI[i] = get_elbo(par, X, t, v_0, w_var)
+
     
     if (i % 10) == 0:
         print(i)
 
-    
+"""
 plt.figure(1)
 plt.clf()
 plt.semilogy(delta)
 plt.xlabel('iteration')
-plt.ylabel('$\|w^{l+1} - w^l\|')
+plt.ylabel('$||w^{l+1} - w^l||_2$')
 plt.title('pairwise difference')
-plt.show()
 
 plt.figure(2) 
 plt.clf()
@@ -129,10 +141,15 @@ plt.xlabel('iteration')
 plt.figure(3)
 plt.plot(elbo_CAVI)
 
+plt.show()
+"""
+
 # save output of CAVI
-output3 = open('CAVI_elbo_probit.pickle', 'wb')
+output3 = open('outputs/CAVI_elbo_probit.pickle', 'wb')
 pickle.dump(elbo_CAVI, output3)
 
-output4 = open('CAVI_Wmean_probit.pickle', 'wb')
+output4 = open('outputs/CAVI_Wmean_probit.pickle', 'wb')
 pickle.dump(w_mean, output4)
-"""
+
+output5 = open('outputs/CAVI_times_probit.pickle', 'wb')
+pickle.dump(times_CAVI, output5)
