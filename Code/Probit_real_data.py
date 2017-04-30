@@ -62,14 +62,14 @@ plt.ylabel("ELBO")
 plt.show()
 
 # save output of Newton
-output1 = open('Newton_elbo_probit', 'wb')
+output1 = open('Newton_elbo_probit.pickle', 'wb')
 pickle.dump(elbo, output1)
 
-output2 = open('Newton_Wmean_probit', 'wb')
+output2 = open('Newton_Wmean_probit.pickle', 'wb')
 pickle.dump(w_post_mean, output2)
 
-
-
+#***************
+"""
 
 # re-initializations
 w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
@@ -130,8 +130,9 @@ plt.figure(3)
 plt.plot(elbo_CAVI)
 
 # save output of CAVI
-output3 = open('CAVI_elbo_probit', 'wb')
+output3 = open('CAVI_elbo_probit.pickle', 'wb')
 pickle.dump(elbo_CAVI, output3)
 
-output4 = open('CAVI_Wmean_probit', 'wb')
+output4 = open('CAVI_Wmean_probit.pickle', 'wb')
 pickle.dump(w_mean, output4)
+"""
