@@ -157,8 +157,9 @@ def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
         lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
         callback=callbackF,
-        tol=1e-6, options={'maxiter': 2, 'disp': True, 'gtol': 1e-9 }) #1000
-    return vb_opt, times, elbo #, pars
+        tol=1e-6, options={'maxiter': 1000, 'disp': True, 'gtol': 1e-15 })
+    return vb_opt, times, elbo, pars
+
 
 def get_elbo(par, X, t, v_0, w_var, flag=False):
     D, N = anp.shape(X)
@@ -180,7 +181,7 @@ def get_elbo(par, X, t, v_0, w_var, flag=False):
     #term6 = -0.5*anp.sum(t*z_loc*anp.exp(asp.stats.norm.logpdf(-z_loc) - asp.stats.norm.logcdf(t*z_loc)))
     
     if flag:
-        print term1, term2, term3, term4, term5 
+        print(term1, term2, term3, term4, term5 )
 
     return term1 + term2 + term3 + term4 + term5 #+ term6
 

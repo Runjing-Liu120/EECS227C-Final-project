@@ -27,6 +27,13 @@ def lmm_CAVI(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
     
     return(beta_mean, mu_mean)
 
+def reparam_lmm(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
+    alpha = np.mean(mu_mean)
+    mu_mean = mu_mean - alpha
+    
+    return(mu_mean)
+
+
 
 from autograd import grad, hessian, jacobian, hessian_vector_product
 import autograd.numpy as anp
