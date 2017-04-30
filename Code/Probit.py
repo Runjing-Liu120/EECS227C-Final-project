@@ -8,6 +8,7 @@ from Probit_lib import *
 import numpy as np
 from scipy.stats import norm
 from copy import deepcopy
+import matplotlib
 import matplotlib.pyplot as plt
 from time import time
 
@@ -73,8 +74,11 @@ z_var = 1
 elbo_cavi = []
 times_cavi = []
 t0 = time()
+PX_error2newt = []
 
 i = 1
+iterations = 100
+CAVI_error2newt = []
 delta_cavi = [1.]#np.zeros((iterations,1))
 d_cavi = []
 while i<1000: # delta_cavi[-1] > 1e-2 or
@@ -96,7 +100,9 @@ while i<1000: # delta_cavi[-1] > 1e-2 or
         # get_elbo(np.concatenate((w_mean,z_loc)), X, t, v_0, w_var,flag=True)
         print(i)
         print(delta_cavi[-1])
-
+        
+    CAVI_error2newt.append(np.linalg.norm(w_mean - w_post_mean))
+    
 delta_cavi = delta_cavi[1:]
 
 
@@ -112,6 +118,7 @@ times_pxvb = []
 t0 = time()
 
 iterations = 100
+PX_error2newt = []
 delta_pxvb = [1.]
 d_pxvb = []
 i = 1
@@ -132,31 +139,77 @@ while delta_pxvb[-1] > 1e-2 or i<1000:
     i+=1
     if i%100==0:
         print(i)
-        
     
+    PX_error2newt.append(np.linalg.norm(w_mean_p - w_post_mean))
+
 delta_pxvb = delta_pxvb[1:]
 
 
+matplotlib.rcParams.update({'font.size': 14})
 
 plt.figure(1)
-plt.plot(elbo_cavi,'r')
-plt.plot(elbo_pxvb,'b')
-plt.plot(elbo_newt,'g')
+plt.clf()
+plt.plot(elbo_cavi[0:10],'r')
+plt.plot(elbo_pxvb[0:10],'b')
+plt.plot(elbo_newt[0:10],'g')
 #plt.plot([get_elbo(par, X, t, v_0, w_var) for par in pars],'k')
-plt.xlabel("iter") # Time (seconds)
+plt.xlabel("iter") 
 plt.ylabel("ELBO")
-#plt.legend(['CAVI','PX-VB','NCG'])
+plt.legend(['CAVI','PX-VB','NCG'], loc= 4)
+plt.title('ELBO per iteration')
 plt.show()
 
 
-"""
 plt.figure(2)
-plt.semilogy(delta_cavi,'r') # times_cavi, 
-plt.semilogy(delta_pxvb,'b') # times_pxvb, 
-plt.semilogy(delta_newt,'g')
+plt.clf()
+plt.semilogy(delta_cavi,'r')
+plt.semilogy(delta_pxvb,'b') 
+#plt.semilogy(delta_newt,'g')
 plt.legend(['CAVI','PX-VB','NCG'])
+plt.xlabel('iter')
+plt.ylabel('$\|w^{l+1} - w^{l}\|')
+plt.title('Difference in consecutive estimates of posterior mean')
 
 
+
+plt.figure(3)
+plt.clf()
+plt.plot(times_cavi[0:10], elbo_cavi[0:10],'ro-')
+plt.plot(times_pxvb[0:10], elbo_pxvb[0:10],'bd-')
+plt.plot(times_newt[0:3], elbo_newt[0:3],'g*-')
+#plt.plot([get_elbo(par, X, t, v_0, w_var) for par in pars],'k')
+plt.xlabel("wall time (s)") 
+plt.ylabel("ELBO")
+plt.legend(['CAVI','PX-VB','NCG'], loc = 4)
+plt.title('ELBO per time')
+plt.show()
+
+plt.figure(4)
+plt.clf()
+plt.semilogy(times_cavi, CAVI_error2newt,'r')
+plt.semilogy(times_pxvb, PX_error2newt,'b')
+plt.xlabel("wall time (s)") 
+plt.ylabel("error")
+plt.legend(['CAVI','PX-VB'], loc = 4)
+plt.title('Error to truth (as computed by NCG)')
+plt.show()
+
+
+plt.figure(5)
+plt.clf()
+plt.semilogy(CAVI_error2newt[0:100],'r')
+plt.semilogy(PX_error2newt[0:100],'b')
+plt.xlabel("Iter") 
+plt.ylabel("error")
+plt.legend(['CAVI','PX-VB'], loc = 4)
+plt.title('Error to truth (as computed by NCG)')
+plt.show()
+
+
+
+
+
+"""
 plt.figure(3)
 plt.semilogy(d_cavi,'r') 
 #plt.axis([0,1000,0,max(d_cavi)+10])
@@ -167,14 +220,14 @@ plt.show()
 """
 
 
-print elbo_newt
-print w
-print w_mean
-print w_post_mean
-print w_mean_p
-print np.linalg.norm(z-z_loc)
-print np.linalg.norm(z_post_loc-z_loc)
-print np.linalg.norm(z_loc_p-z_loc)
+print(elbo_newt)
+print(w)
+print(w_mean)
+print(w_post_mean)
+print(w_mean_p)
+print(np.linalg.norm(z-z_loc))
+print(np.linalg.norm(z_post_loc-z_loc))
+print(np.linalg.norm(z_loc_p-z_loc))
 
 """
 # Gibbs sampler
