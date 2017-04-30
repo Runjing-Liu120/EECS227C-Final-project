@@ -18,8 +18,8 @@ from time import time
 np.random.seed(12345676) # 314
 
 
-N = 1000
-D = 5 # 10
+N = 500
+D = 20 # 10
 v_0 = 10. # prior variance of w (was 1000.)
 
 
@@ -34,8 +34,9 @@ my_init_z = np.random.normal(0, 1, N)
 #for n in range(N):
 #    X[:,n] = col + np.random.normal(0, .0001, (D))
 X = np.random.normal(0, 1., (D,N))
-
 #np.dot(x_rot, np.random.normal(0, 1, (D,N))) # design matrix
+
+
 w = np.random.multivariate_normal(np.zeros(D), np.identity(D))
 z = np.random.multivariate_normal(np.dot(w,X), np.identity(N))
 t = np.sign(z)
@@ -49,9 +50,12 @@ z_loc = deepcopy(my_init_z)#np.random.normal(0, 1, N)
 results, times_newt, elbo_newt, pars = probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
 w_post_mean = results.x[:D]
 z_post_loc  = results.x[D:]
-errors = [np.linalg.norm(par[:D] - w) for par in pars] 
-delta_newt = [np.linalg.norm(pars[i][:D] - pars[i+1][:D]) for i in range(len(pars)-1)] 
-d_newt = [np.linalg.norm(par[:D] - w) for par in pars] # wpostmean here 
+
+
+
+# errors = [np.linalg.norm(par[:D] - w) for par in pars] 
+# delta_newt = [np.linalg.norm(pars[i][:D] - pars[i+1][:D]) for i in range(len(pars)-1)] 
+# d_newt = [np.linalg.norm(par[:D] - w) for par in pars] # wpostmean here 
 #plt.figure(1)
 #plt.semilogy(times, elbo,'b')
 
@@ -73,7 +77,7 @@ t0 = time()
 i = 1
 delta_cavi = [1.]#np.zeros((iterations,1))
 d_cavi = []
-while delta_cavi[-1] > 1e-2 or i<1000:
+while i<1000: # delta_cavi[-1] > 1e-2 or
 #for i in range(iterations):
     w_mean_prev = deepcopy(w_mean)
     d_cavi.append(np.linalg.norm(w - w_mean))
@@ -89,9 +93,10 @@ while delta_cavi[-1] > 1e-2 or i<1000:
 
     i+=1
     if i%100==0:
-        get_elbo(np.concatenate((w_mean,z_loc)), X, t, v_0, w_var,flag=True)
-        print i
-        print delta_cavi[-1]
+        # get_elbo(np.concatenate((w_mean,z_loc)), X, t, v_0, w_var,flag=True)
+        print(i)
+        print(delta_cavi[-1])
+
 delta_cavi = delta_cavi[1:]
 
 
@@ -126,7 +131,9 @@ while delta_pxvb[-1] > 1e-2 or i<1000:
     #d_pxvb.append(np.linalg.norm(w_post_mean - w_mean))
     i+=1
     if i%100==0:
-        print i
+        print(i)
+        
+    
 delta_pxvb = delta_pxvb[1:]
 
 
