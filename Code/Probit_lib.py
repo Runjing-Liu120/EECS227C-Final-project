@@ -45,6 +45,7 @@ def probit_CAVI(X, t, v_0, w_mean, w_var, z_loc, z_var):
     D = np.shape(X)[0]
 
     # update location parameter of z       
+    
     z_loc = np.dot(w_mean, X)
     
     # compute mean of z
@@ -67,15 +68,17 @@ def probit_reparam(X, t, v_0, w_mean, w_var, z_loc, z_var):
     c2 = 1/v_0 * (np.dot(w_mean, w_mean) + np.trace(w_var)) # eq 13 in PX-VB paper
     [z_trunc_mean, z_trunc_var] = trunc_Normal(z_loc, t)
     
-    for n in range(N):
-        c2 += (z_trunc_mean[n]**2 + z_trunc_var[n]) - \
-                2*z_trunc_mean[n]*np.dot(w_mean, X[:,n]) \
-                + np.dot(X[:,n],np.dot(exp_w2,X[:,n]))
+    # for n in range(N):
+    #     c2 += (z_trunc_mean[n]**2 + z_trunc_var[n]) - \
+    #             2*z_trunc_mean[n]*np.dot(w_mean, X[:,n]) \
+    #             + np.dot(X[:,n],np.dot(exp_w2,X[:,n]))
+
+    c2 += np.sum((z_trunc_mean**2 + z_trunc_var) - 2*z_trunc_mean*np.dot(w_mean, X)) \
+                + np.trace(np.dot(X.T,np.dot(exp_w2,X)))
                 
-    c2 = c2 * 1/(N+D)
+    c2 *= 1./(N+D)
     
     w_mean = w_mean/np.sqrt(c2)
-    #w_var = w_var/c2
     
     return(w_mean, w_var)
 
@@ -140,34 +143,46 @@ def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
 
     elbo = []
     times= []
+    pars = []
     t0 = time()
     it = []
     def callbackF(par):
         it.append(1)
-        print('iter=',len(it))
+        #print('iter=',len(it))
         elbo.append(-kl_wrapper.kl(par, X, t, v_0, w_var))
         times.append(time()-t0)
+        pars.append(par)
 
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
         callback=callbackF,
-        tol=1e-6, options={'maxiter': 5, 'disp': True, 'gtol': 1e-9 })
-    return vb_opt, times, elbo
+        tol=1e-6, options={'maxiter': 1000, 'disp': True, 'gtol': 1e-9 })
+    return vb_opt, times, elbo, pars
 
-def get_elbo(par, X, t, v_0, w_var):
+def get_elbo(par, X, t, v_0, w_var, flag=False):
     D, N = anp.shape(X)
     w_mean = par[:D]
     z_loc  = par[D:]
+
+
+    #m1,m2 = trunc_Normal(z_loc,t)
+
     term1 = - (anp.trace(w_var) + anp.dot(w_mean,w_mean)) / (2.*v_0**2)
     term2 = anp.log((2.*anp.pi*anp.e)**D*anp.linalg.det(w_var)) / 2.
-    term3 = - 0.5 * anp.trace(anp.dot(anp.dot(X.T,w_var+anp.outer(w_mean,w_mean)),X))
+    term3 = -0.5 * anp.trace(anp.dot(anp.dot(X.T,w_var+anp.outer(w_mean,w_mean)),X))
     #term4 = -0.5 * sum(1 + z_loc[n]**2 + 2*t[n]*(z_loc[n]-anp.dot(w_mean,X[:,n]))*asp.stats.norm.pdf(t[n]*z_loc[n]) / asp.stats.norm.cdf(t[n]*z_loc[n]) for n in range(N))
-    term4 =  -0.5 * anp.sum(1 + z_loc**2 + 2*t*(z_loc-anp.dot(w_mean,X))*anp.exp(asp.stats.norm.logpdf(t*z_loc) - asp.stats.norm.logcdf(t*z_loc)))    
+    term4 =  -0.5 * anp.sum(1 + z_loc**2 + 2*t*(z_loc-anp.dot(w_mean,X))*anp.exp(asp.stats.norm.logpdf(-z_loc) - asp.stats.norm.logcdf(t*z_loc)))    
+    #term4 = -0.5*anp.sum(m2+m1**2) + anp.sum(anp.dot(w_mean,X)*m1)
     #term5 = sum((z_loc[n]*anp.dot(w_mean,X[:,n]))+anp.log(anp.sqrt(2.*anp.pi*anp.e)*asp.stats.norm.cdf(t[n]*z_loc[n])) for n in range(N))
-    term5 = anp.sum(z_loc*anp.dot(w_mean,X)+anp.log(anp.sqrt(2.*anp.pi*anp.e)*asp.stats.norm.cdf(t*z_loc)) )
+    term5 = anp.sum(z_loc*anp.dot(w_mean,X) + asp.stats.norm.logcdf(t*z_loc) + .5*anp.log(2*anp.pi) + .5) 
+    #term5 = anp.sum(asp.stats.norm.logcdf(t*z_loc) + .5*anp.log(2*anp.pi) + .5) 
+    #term6 = -0.5*anp.sum(t*z_loc*anp.exp(asp.stats.norm.logpdf(-z_loc) - asp.stats.norm.logcdf(t*z_loc)))
     
-    return term1 + term2 + term3 + term4 + term5
+    if flag:
+        print term1, term2, term3, term4, term5 
+
+    return term1 + term2 + term3 + term4 + term5 #+ term6
 
 class KLWrapper(object):
     def __init__(self, par, X, t, v_0, w_var):
@@ -175,10 +190,9 @@ class KLWrapper(object):
         self.kl_hess = hessian(lambda p : self.kl(p, X, t, v_0, w_var))
         self.kl_hvp  = hessian_vector_product(lambda p : self.kl(p, X, t, v_0, w_var))
 
-    def kl(self, par, X, t, v_0, w_var, verbose=True):
+    def kl(self, par, X, t, v_0, w_var, verbose=False):
         # kl up to a constant
         kl = -get_elbo(par, X, t, v_0, w_var) 
         if verbose: print(kl)
 
-        #self.elbo.append(-kl)
         return kl
