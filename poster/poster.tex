@@ -97,9 +97,9 @@
 \begin{alertblock}{Objectives}
 Our aim is to evaluate the effectiveness of various optimization algorithms for approximate Bayesian inference. In particular, we were interested in examining:
 \begin{itemize}
-\item {\bf coordinate ascent}, the standard method for variational inference;
-\item {\bf Newton conjugate trust region}, an accepted second-order optimization method; 
-\item and {\bf parameter expanded variational inference}, a data-augementation method described in Qi and Jaakkola 2006. 
+\item {\bf coordinate ascent} (CAVI), the standard method for variational inference;
+\item {\bf Newton conjugate trust region} (NCG), an accepted second-order optimization method; 
+\item and {\bf parameter expanded variational Bayes} (PX-VB), a data-augementation method described in Qi and Jaakkola 2006. 
 \end{itemize}
 
 
@@ -111,18 +111,28 @@ Our aim is to evaluate the effectiveness of various optimization algorithms for 
 
 \begin{block}{Motivation}
 
-Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed commodo molestie porta. Sed ultrices scelerisque sapien ac commodo. Donec ut volutpat elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
-
-This statement requires citation \cite{Smith:2012qr}.
-
+Often a model has multiple natural parameterizations. A key example is the normal hierarchical model. In the {\sl centered augmentation},
+\begin{align}
+\mu \mid \theta
+&\sim \mathcal N(\theta,V) \\
+X\mid \mu,\theta
+&\sim \mathcal N(\mu,1)
+\end{align}
+If $p(\theta)\propto 1$, the posterior is $\theta\mid X \sim \mathcal N(X,1+V)$. In the {\sl non-centered augmentation},
+\begin{align}
+\nu \mid \theta
+&\sim \mathcal N(0,V) \\
+X\mid \nu,\theta
+&\sim \mathcal N(\nu +\theta,1)
+\end{align}
 \end{block}
 
 %------------------------------------------------
 
-\begin{figure}
-\includegraphics[width=0.8\linewidth]{placeholder.jpg}
-\caption{Figure caption}
-\end{figure}
+%\begin{figure}
+%\includegraphics[width=0.8\linewidth]{placeholder.jpg}
+%\caption{Figure caption}
+%\end{figure}
 
 %----------------------------------------------------------------------------------------
 
@@ -189,23 +199,24 @@ This statement requires citation \cite{Smith:2012qr}.
 % PROBIT REGRESSION
 %------------------------------------
 \begin{block}{Probit regression}
-Let $t_n, n=1, ..., N$ be binary random variables. In probit regression our model is
+Let $\{t_n\}_{n=1}^N$ be $\{-1,+1\}$--valued random variables. In probit regression, our likelihood is
 \begin{align*}
-p(t | X, w) = \prod_{n=1}^N \Phi(x_n^Tw)
+p(t | X, w) = \prod_{n=1}^N \Phi(t_nx_n^Tw)
 \end{align*}
-where $\Phi$ is the standard normal c.d.f function. The $x_n$'s are fixed, and we place a normal prior on $w$. To do inference on $w$, we take a variational approach, optimizing over variational parameters to maximize the evidence lower bound. The results of CAVI, Newton-CG, and PX-VB are displayed below.   
+where $\Phi$ is the standard normal c.d.f function. The matrix $X$ is fixed, and we place a normal prior on $w$. To do inference on $w$, we adopt a variational approach, optimizing over variational parameters to maximize the evidence lower bound. \\~\\
 
-\begin{figure}[h]
-  \centering
-    \begin{subfigure}[t]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{Probit_synth/CAVI_PX_convergence.png}
-        
-    \end{subfigure}
-          \begin{subfigure}[t]{0.4\textwidth}
-        \includegraphics[width=\textwidth]{Probit_synth/elbo_time.png}
-    \end{subfigure}
-    \caption{Convergence results for synthetic data. Number of data points was  $N=500$, dimension of $w$ was $D=20$. }
-\end{figure}
+The results of CAVI, Newton-CG, and PX-VB are displayed below.   
+
+%\begin{figure}[h]
+%  \centering
+%    \begin{subfigure}[t]{0.4\textwidth}
+%        \includegraphics[width=\textwidth]{Probit_synth/CAVI_PX_convergence.png}        
+%    \end{subfigure}
+%          \begin{subfigure}[t]{0.4\textwidth}
+%        \includegraphics[width=\textwidth]{Probit_synth/elbo_time.png}
+%    \end{subfigure}
+%    \caption{Convergence results for synthetic data. Num. data points $N=500$, num. covariates $D=20$. }
+%\end{figure}
 
 \begin{figure}[h]
         \begin{subfigure}[t]{0.4\textwidth}
@@ -220,7 +231,22 @@ where $\Phi$ is the standard normal c.d.f function. The $x_n$'s are fixed, and w
     
   
 
-
+\begin{table}
+\vspace{2ex}
+\begin{tabular}{c | c | c | c | c | c | c | c}
+\toprule
+\textbf{Keyword} & intercept & make & 3d & addresses & free & business & george \\
+\midrule
+Estimate $\widehat w$ & -0.81 & -0.19 & 1.74 & 0.83 & 0.51 & 0.46 & -4.46\\
+\midrule
+\textbf{Keyword} & lab & technology & cs & meeting & ! & \$ & \# \\
+\midrule
+Estimate $\widehat w$ & -7.66 & 0.46 & -31.78 & -1.85 & 0.16 & 2.30 & 1.35\\
+\bottomrule
+\end{tabular}
+~
+\caption{Table caption}
+\end{table}
 
 
 
@@ -231,11 +257,8 @@ where $\Phi$ is the standard normal c.d.f function. The $x_n$'s are fixed, and w
 %------------------------------------
 % Linear mixed effects model
 %------------------------------------
-\begin{block}{Linear mixed effects model}
-
-
-
-\end{block}
+%\begin{block}{Linear mixed effects model}
+%\end{block}
 
 
 %----------------------------------------------------------------------------------------
@@ -377,7 +400,7 @@ Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius 
 
 \begin{center}
 \begin{tabular}{ccc}
-\includegraphics[width=0.7\linewidth]{logo.png} %& \hfill & \includegraphics[width=0.4\linewidth]{logo.png}
+\includegraphics[width=0.6\linewidth]{logo.png} %& \hfill & \includegraphics[width=0.4\linewidth]{logo.png}
 \end{tabular}
 \end{center}
 
