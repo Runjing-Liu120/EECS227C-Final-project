@@ -95,10 +95,10 @@
 %----------------------------------------------------------------------------------------
 
 \begin{alertblock}{Objectives}
-Our aim is to evaluate the effectiveness of various optimization algorithms for approximate Bayesian inference. In particular, we were interested in examining:
+We evaluate the effectiveness of various optimization algorithms for approximate Bayesian inference. In particular, we examine: \vspace{-.5em}
 \begin{itemize}
 \item {\bf coordinate ascent} (CAVI), the standard method for variational inference;
-\item {\bf Newton conjugate trust region} (NCG), an accepted second-order optimization method; 
+\item {\bf Newton conjugate trust region} (NCG), a second-order method for when automatic differentiation is available; 
 \item and {\bf parameter expanded variational Bayes} (PX-VB), a data-augementation method described in Qi and Jaakkola 2006. 
 \end{itemize}
 
@@ -111,20 +111,38 @@ Our aim is to evaluate the effectiveness of various optimization algorithms for 
 
 \begin{block}{Motivation}
 
-Often a model has multiple natural parameterizations. A key example is the normal hierarchical model. In the {\sl centered augmentation},
-\begin{align}
+Often a model has multiple data augmentations. Consider for example the normal hierarchical model. In the sufficient augmentation (SA),
+\begin{align*}
 \mu \mid \theta
-&\sim \mathcal N(\theta,V) \\
+&\sim \mathcal N(\theta,V) ~~~\,\,\,\,\\
 X\mid \mu,\theta
 &\sim \mathcal N(\mu,1)
-\end{align}
-If $p(\theta)\propto 1$, the posterior is $\theta\mid X \sim \mathcal N(X,1+V)$. In the {\sl non-centered augmentation},
-\begin{align}
+\end{align*}
+If $p(\theta)\propto 1$, the posterior is $\theta\mid X \sim \mathcal N(X,1+V)$. In the ancillary augmentation (AA), let $\nu=\mu-\theta$:
+\begin{align*}
 \nu \mid \theta
 &\sim \mathcal N(0,V) \\
 X\mid \nu,\theta
 &\sim \mathcal N(\nu +\theta,1)
-\end{align}
+\end{align*}
+{\sl Mean-field variational inference} for SA solves %finds the factorized distribution over the latent variables which is closest in KL-divergence to the posterior. That is, we solve %In the context of the previous example, our objective is
+\begin{align*}
+\min_{q(\mu),q(\theta)}D\big(q(\mu)q(\theta)\,\big\|\, p(\mu,\theta\mid X)\big),
+\end{align*}
+and analogously for AA. Optimizing this objective with coordinate ascent (CAVI), the resulting posterior means $\mathbb E_{q^t}[\theta]$ converge linearly with rate $\frac{1}{1+V}$ (for SA) and $\frac{V}{1+V}$ (for AA). 
+
+\begin{figure}[h]
+        \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{normal_ex/nm_convergence1.png}
+    \end{subfigure}
+          \begin{subfigure}[t]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{normal_ex/nm_convergence2.png}
+    \end{subfigure}
+%    \caption{Convergence results for conducting variational inference on SPAM data (Efron and Hastie 2016). $N= 4601$ emails were examined with the binary dependent variable taken to be whether or not the email was SPAM. $D=57$ keyword predictors were used (e.g. prevalence of the word `'MONEY'', `'FREE'', etc). }
+\end{figure}
+
+The convergence results (above) for the toy model demonstrate that strategies which utilize both data augmentations or compromise between them have the potential for much faster convergence than the better of the two.
+
 \end{block}
 
 %------------------------------------------------
@@ -195,10 +213,15 @@ X\mid \nu,\theta
 %\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
 
 
+\begin{block}{Parameter Expansion Variational Bayes}
+
+\end{block}
+
+
 %------------------------------------
 % PROBIT REGRESSION
 %------------------------------------
-\begin{block}{Probit regression}
+\begin{block}{Example: Probit regression}
 Let $\{t_n\}_{n=1}^N$ be $\{-1,+1\}$--valued random variables. In probit regression, our likelihood is
 \begin{align*}
 p(t | X, w) = \prod_{n=1}^N \Phi(t_nx_n^Tw)
@@ -241,7 +264,7 @@ Estimate $\widehat w$ & -0.81 & -0.19 & 1.74 & 0.83 & 0.51 & 0.46 & -4.46\\
 \midrule
 \textbf{Keyword} & lab & technology & cs & meeting & ! & \$ & \# \\
 \midrule
-Estimate $\widehat w$ & -7.66 & 0.46 & -31.78 & -1.85 & 0.16 & 2.30 & 1.35\\
+Estimate $\widehat w$ & -7.66 & 0.46 & -1.78 & -1.85 & 0.16 & 2.30 & 1.35\\
 \bottomrule
 \end{tabular}
 ~
@@ -358,7 +381,9 @@ Estimate $\widehat w$ & -7.66 & 0.46 & -31.78 & -1.85 & 0.16 & 2.30 & 1.35\\
 
 \begin{block}{Conclusion}
 
-Nunc tempus venenatis facilisis. \textbf{Curabitur suscipit} consequat eros non porttitor. Sed a massa dolor, id ornare enim. Fusce quis massa dictum tortor \textbf{tincidunt mattis}. Donec quam est, lobortis quis pretium at, laoreet scelerisque lacus. Nam quis odio enim, in molestie libero. Vivamus cursus mi at \textit{nulla elementum sollicitudin}.
+We found that in our Bayesian Probit regression problem, PX-VB speeds up the convergence of variational methods compared to coordinate ascent and Newton conjugate gradient, two standard algorithms in optimization. The Newton method does in fact converge in fewer iterations, but the computational cost at every iteration is heavy. While the PX-VB algorithm adds an intermediate step to coordinate ascent, the computational cost of this additional step is small-- and is easily balanced out by the drop in iteration complexity. \\~\\
+
+One challenge to running PX-VB is anticipating which data-augmentation scheme will actually achieve an acceleration in convergence. If we view the intermediate step in PX-VB as defining a mapping $M_\alpha$ that takes $(q, p_0) \mapsto (q, p_\alpha) \mapsto (q_\alpha, p_0)$, Qi and Jaakkola show that if the smallest eigenvalue of $M_\alpha$ is less than 1, then $PX-VB$ will converge faster than CAVI. However, anticipating which data-augmentation will result in such a mapping, or even computing this eigenvalue from an abstract mapping, or is non-trivial.
 
 \end{block}
 
@@ -381,11 +406,32 @@ Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius 
 %	REFERENCES
 %----------------------------------------------------------------------------------------
 
+%----------------------------------------------------------------------------------------
+%	REFERENCES
+%----------------------------------------------------------------------------------------
+
 \begin{block}{References}
 
-\nocite{*} % Insert publications even if they are not cited in the poster
-\small{\bibliographystyle{unsrt}
-\bibliography{sample}\vspace{0.75in}}
+%\nocite{*} % Insert publications even if they are not cited in the poster
+%\small{\bibliographystyle{unsrt}
+%\bibliography{sample}\vspace{0.75in}}
+
+\scriptsize{ % was \tiny
+
+\noindent[1] Blei, D. M., Kucukelbir, A. \& McAuliffe, J. D. (2016). Variational inference: a review for statisticians. {\itshape arXiv:1601.00670}.
+
+\noindent[2] Efron, B \& Hastie, T.J. (2016). Computer Age Statistical Inference. {\itshape Cambridge University Press}.
+
+\noindent[3] Grimmer, J. (2011). An Introduction to Bayesian Inference via Variational Approximations. {\itshape Political Analysis}. 19(1): 32-47.
+
+\noindent[4] Luo, Z. Q. \& Tseng, P. (1992). On the Convergence of the Coordinate Descent Method for Convex Differentiable Minimization. {\itshape Journal of Optimization Theory and Applications} 72(1): 7-35. 
+
+\noindent[5] Qi, Y. \& Jaakkola, T. S. (2006). Parameter Expanded Variational Bayesian Methods. {\itshape Neural Information Processing Systems}. 
+
+\noindent[6] Yu, Y. \& Meng, X. (2012). To Center or Not to Center: That Is Not the
+Question-- An Ancillarity-Sufficiency Interweaving Strategy (ASIS) for Boosting MCMC Efficiency. {\itshape Journal of Computational and Graphical Statistics}. 20(3): 531-570. 
+
+}
 
 \end{block}
 
@@ -396,7 +442,7 @@ Maecenas ultricies feugiat velit non mattis. Fusce tempus arcu id ligula varius 
 \setbeamercolor{block title}{fg=red,bg=white} % Change the block title color
 
 
-\vspace{25em} 
+\vspace{15em} 
 
 \begin{center}
 \begin{tabular}{ccc}
