@@ -1,6 +1,9 @@
 import pickle as pkl
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.rcParams.update({'font.size': 14})
 
 
 # load output of Newton
@@ -46,7 +49,6 @@ output11 = open('outputs/PXVB_pars_probit.pickle', 'rb')
 pars_PXVB = pkl.load(output11)
 
 
-
 # elbo plot
 plt.figure(1)
 m = min([elbo_cavi[0],elbo_pxvb[0], elbo_newt[0]])
@@ -57,6 +59,7 @@ plt.xlabel("Wall Time (s)")
 plt.ylabel("ELBO")
 plt.legend(['CAVI','PXVB','NCG'], loc= 4)
 plt.title('ELBO vs Time')
+plt.tight_layout()
 plt.savefig('../poster/Probit_real/elbo_time.png')
 
 """
@@ -82,5 +85,6 @@ plt.xlabel("Wall Time (s)")
 plt.ylabel("$||w^{t+1} - w^t||_2$")
 plt.legend(['CAVI','PXVB'], loc= 4)
 plt.title('Difference Between Consecutive Estimates')
+plt.tight_layout()
 plt.savefig('../poster/Probit_real/CAVI_PX_convergence.png') 
 plt.show()

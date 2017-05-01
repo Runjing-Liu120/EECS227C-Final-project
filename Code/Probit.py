@@ -152,12 +152,12 @@ plt.clf()
 plt.plot(elbo_cavi[0:10],'r')
 plt.plot(elbo_pxvb[0:10],'b')
 plt.plot(elbo_newt[0:10],'g')
-#plt.plot([get_elbo(par, X, t, v_0, w_var) for par in pars],'k')
-plt.xlabel("iter") 
+plt.xlabel("Iteration Number") 
 plt.ylabel("ELBO")
 plt.legend(['CAVI','PX-VB','NCG'], loc= 4)
-plt.title('ELBO per iteration')
-plt.show()
+plt.title('ELBO per Iteration')
+plt.tight_layout()
+plt.savefig('../poster/Probit_synth/elbo_iter.png')
 
 
 plt.figure(2)
@@ -166,10 +166,11 @@ plt.semilogy(delta_cavi,'r')
 plt.semilogy(delta_pxvb,'b') 
 #plt.semilogy(delta_newt,'g')
 plt.legend(['CAVI','PX-VB','NCG'])
-plt.xlabel('iter')
-plt.ylabel('$\|w^{l+1} - w^{l}\|')
-plt.title('Difference in consecutive estimates of posterior mean')
-
+plt.xlabel('Iteration Number')
+plt.ylabel('$||w^{t+1} - w^t||_2$')
+plt.title('Difference Between Consecutive Estimates')
+plt.tight_layout()
+plt.savefig('../poster/Probit_synth/CAVI_PX_convergence.png')
 
 
 plt.figure(3)
@@ -177,47 +178,38 @@ plt.clf()
 plt.plot(times_cavi[0:10], elbo_cavi[0:10],'ro-')
 plt.plot(times_pxvb[0:10], elbo_pxvb[0:10],'bd-')
 plt.plot(times_newt[0:3], elbo_newt[0:3],'g*-')
-#plt.plot([get_elbo(par, X, t, v_0, w_var) for par in pars],'k')
-plt.xlabel("wall time (s)") 
+plt.xlabel("Wall Time (s)") 
 plt.ylabel("ELBO")
 plt.legend(['CAVI','PX-VB','NCG'], loc = 4)
-plt.title('ELBO per time')
-plt.show()
+plt.title('ELBO vs Time')
+plt.tight_layout()
+plt.savefig('../poster/Probit_synth/elbo_time.png')
+
 
 plt.figure(4)
 plt.clf()
 plt.semilogy(times_cavi, CAVI_error2newt,'r')
 plt.semilogy(times_pxvb, PX_error2newt,'b')
-plt.xlabel("wall time (s)") 
-plt.ylabel("error")
+plt.xlabel("Wall Time (s)") 
+plt.ylabel("Error $||w^t - w^*||_2$")
 plt.legend(['CAVI','PX-VB'], loc = 4)
 plt.title('Error to truth (as computed by NCG)')
-plt.show()
+plt.tight_layout()
+plt.savefig('../poster/Probit_synth/error2newt_time.png')
 
 
 plt.figure(5)
 plt.clf()
 plt.semilogy(CAVI_error2newt[0:100],'r')
 plt.semilogy(PX_error2newt[0:100],'b')
-plt.xlabel("Iter") 
-plt.ylabel("error")
+plt.xlabel("Iteration Number") 
+plt.ylabel("Error $||w^t - w^*||_2$")
 plt.legend(['CAVI','PX-VB'], loc = 4)
 plt.title('Error to truth (as computed by NCG)')
+plt.tight_layout()
+plt.savefig('../poster/Probit_synth/error2newt_iter.png')
 plt.show()
 
-
-
-
-
-"""
-plt.figure(3)
-plt.semilogy(d_cavi,'r') 
-#plt.axis([0,1000,0,max(d_cavi)+10])
-plt.semilogy(d_pxvb,'b') 
-plt.semilogy(d_newt,'g')
-plt.legend(['CAVI','PX-VB','NCG'])
-plt.show()
-"""
 
 
 print(elbo_newt)
