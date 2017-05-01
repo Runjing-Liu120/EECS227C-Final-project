@@ -11,12 +11,7 @@ import matplotlib.pyplot as plt
 
 def lmm_CAVI(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
 
-    # update mu parameters
-    for g in range(NG): 
-        mu_mean[g] = mu_var * (1/prior_var['y']) * np.sum(y[g*N:(g+1)*N] - np.dot(X[:,g*N:(g+1)*N].T,beta_mean)) 
-        
-                
-                
+
     # update beta
     # beta_var = np.linalg.inv(1/prior['beta']*np.identity(K) \
         #                          + 1/prior_var['y'] * np.dot(X,X.T))
@@ -24,6 +19,13 @@ def lmm_CAVI(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K):
     y_g_vec = np.array([ g for g in range(NG) for n in range(N) ])
     canonical_beta_mean = (np.dot(X, y) - sum(mu_mean[n//N]*X[:,n] for n in range(NObs))) / prior_var['y']
     beta_mean = np.dot(beta_var, canonical_beta_mean)
+ 
+    # update mu parameters
+    for g in range(NG): 
+        mu_mean[g] = mu_var * (1/prior_var['y']) * np.sum(y[g*N:(g+1)*N] - np.dot(X[:,g*N:(g+1)*N].T,beta_mean)) 
+        
+                
+                
     
     return(beta_mean, mu_mean)
 
@@ -58,7 +60,7 @@ def lmm_Newton(X, y, beta_mean, beta_var, mu_mean, mu_var, prior_var, NG,N,K,max
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, y, beta_var, mu_var, prior_var, NG,N,K),
         par_init, method='trust-ncg', jac=kl_wrapper.kl_grad, hessp=kl_wrapper.kl_hvp,
-        callback=callbackF,
+        callback=callbackF, #trust-ncg
         tol=1e-6, options={'maxiter': maxiter, 'disp': False, 'gtol': 1e-9 })
     return vb_opt, times, elbo, pars
 
