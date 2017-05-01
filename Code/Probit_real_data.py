@@ -84,8 +84,6 @@ pickle.dump(pars, output3)
 
 """
 
-output2 = open('outputs/Newton_Wmean_probit.pickle', 'rb')
-w_post_mean = pickle.load(output2)
 
 
 # re-initialize
@@ -94,6 +92,14 @@ w_var  = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
 
 z_loc = deepcopy(z_init)
 z_var = 1
+
+
+output1 = open('outputs/Wvar_probit.pickle', 'wb')
+pickle.dump(w_var, output1)
+
+output2 = open('outputs/Newton_Wmean_probit.pickle', 'rb')
+w_post_mean = pickle.load(output2)
+
 
 
 iterations = 1000
@@ -111,7 +117,7 @@ delbo = 0.
 t0 = time()
 i=0
 delta[0] = 1.
-while i<iterations and delta[i] > 1e-6
+while i<iterations and delta[i] > 1e-6:
     i+=1
     times[i] = time() - t0 - delbo
     w_mean_prev = deepcopy(w_mean)
