@@ -42,7 +42,6 @@ w = np.random.multivariate_normal(np.zeros(D), np.identity(D))
 z = np.random.multivariate_normal(np.dot(w,X), np.identity(N))
 t = np.sign(z)
 
-
 # NEWTON method
 w_mean = deepcopy(my_init_w) #np.random.multivariate_normal(np.zeros(D), np.identity(D) )
 w_var  = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
@@ -81,7 +80,7 @@ iterations = 100
 CAVI_error2newt = []
 delta_cavi = [1.]#np.zeros((iterations,1))
 d_cavi = []
-while i<1000: # delta_cavi[-1] > 1e-2 or
+while delta_cavi[-1] > 1e-13: 
 #for i in range(iterations):
     w_mean_prev = deepcopy(w_mean)
     d_cavi.append(np.linalg.norm(w - w_mean))
@@ -122,7 +121,7 @@ PX_error2newt = []
 delta_pxvb = [1.]
 d_pxvb = []
 i = 1
-while delta_pxvb[-1] > 1e-2 or i<1000:
+while delta_pxvb[-1] > 1e-13: 
     w_mean_prev = deepcopy(w_mean_p)
     
     # PX-VB updates
@@ -162,11 +161,11 @@ plt.savefig('../poster/Probit_synth/elbo_iter.png')
 
 plt.figure(2)
 plt.clf()
-plt.semilogy(delta_cavi,'r')
-plt.semilogy(delta_pxvb,'b') 
+plt.semilogy(times_cavi, delta_cavi,'r')
+plt.semilogy(times_pxvb, delta_pxvb,'b') 
 #plt.semilogy(delta_newt,'g')
-plt.legend(['CAVI','PX-VB','NCG'])
-plt.xlabel('Iteration Number')
+plt.legend(['CAVI','PX-VB'])
+plt.xlabel('Wall Time (s)')
 plt.ylabel('$||w^{t+1} - w^t||_2$')
 plt.title('Difference Between Consecutive Estimates')
 plt.tight_layout()

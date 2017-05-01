@@ -56,6 +56,9 @@
 %-----------------------------------------------------------
 
 \usepackage{graphicx}  % Required for including images
+\usepackage{booktabs} % Top and bottom rules for tables
+\usepackage{subcaption}
+\usepackage[font=normalsize,labelfont=bf]{caption}
 
 \usepackage{booktabs} % Top and bottom rules for tables
 
@@ -92,14 +95,13 @@
 %----------------------------------------------------------------------------------------
 
 \begin{alertblock}{Objectives}
-
-Lorem ipsum dolor sit amet, consectetur, nunc tellus pulvinar tortor, commodo eleifend risus arcu sed odio:
+Our aim is to evaluate the effectiveness of various optimization algorithms for approximate Bayesian inference. In particular, we were interested in examining:
 \begin{itemize}
-\item Mollis dignissim, magna augue tincidunt dolor, interdum vestibulum urna
-\item Sed aliquet luctus lectus, eget aliquet leo ullamcorper consequat. Vivamus eros sem, iaculis ut euismod non, sollicitudin vel orci.
-\item Nascetur ridiculus mus.  
-\item Euismod non erat. Nam ultricies pellentesque nunc, ultrices volutpat nisl ultrices a.
+\item {\bf coordinate ascent}, the standard method for variational inference;
+\item {\bf Newton conjugate trust region}, an accepted second-order optimization method; 
+\item and {\bf parameter expanded variational inference}, a data-augementation method described in Qi and Jaakkola 2006. 
 \end{itemize}
+
 
 \end{alertblock}
 
@@ -107,7 +109,7 @@ Lorem ipsum dolor sit amet, consectetur, nunc tellus pulvinar tortor, commodo el
 %	INTRODUCTION
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Introduction}
+\begin{block}{Motivation}
 
 Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed commodo molestie porta. Sed ultrices scelerisque sapien ac commodo. Donec ut volutpat elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
 
@@ -130,143 +132,196 @@ This statement requires citation \cite{Smith:2012qr}.
 
 \begin{column}{\twocolwid} % Begin a column which is two columns wide (column 2)
 
-\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
+%\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column
+%
+%\begin{column}{\onecolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
+%
+%%----------------------------------------------------------------------------------------
+%%	MATERIALS
+%%----------------------------------------------------------------------------------------
+%
+%\begin{block}{Materials}
+%
+%The following materials were required to complete the research:
+%
+%\begin{itemize}
+%\item El burrita
+%\item Eu facilisis est tempus quis
+%\item Duis porta consequat lorem
+%\item Eu facilisis est tempus quis
+%\end{itemize}
+%
+%The materials were prepared according to the steps outlined below:
+%
+%\begin{enumerate}
+%\item Curabitur pellentesque dignissim
+%\item Eu facilisis est tempus quis
+%\item Duis porta consequat lorem
+%\item Curabitur pellentesque dignissim
+%\end{enumerate}
+%
+%\end{block}
+%
+%%----------------------------------------------------------------------------------------
+%
+%\end{column} % End of column 2.1
+%
+%\begin{column}{\onecolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
+%
+%%----------------------------------------------------------------------------------------
+%%	METHODS
+%%----------------------------------------------------------------------------------------
+%
+%\begin{block}{Methods}
+%
+%Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
+%
+%\end{block}
+%
+%%----------------------------------------------------------------------------------------
+%
+%\end{column} % End of column 2.2
 
-\begin{column}{\onecolwid}\vspace{-.6in} % The first column within column 2 (column 2.1)
+%\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
 
-%----------------------------------------------------------------------------------------
-%	MATERIALS
-%----------------------------------------------------------------------------------------
 
-\begin{block}{Materials}
+%------------------------------------
+% PROBIT REGRESSION
+%------------------------------------
+\begin{block}{Probit regression}
+Let $t_n, n=1, ..., N$ be binary random variables. In probit regression our model is
+\begin{align*}
+p(t | X, w) = \prod_{n=1}^N \Phi(x_n^Tw)
+\end{align*}
+where $\Phi$ is the standard normal c.d.f function. The $x_n$'s are fixed, and we place a normal prior on $w$. To do inference on $w$, we take a variational approach, optimizing over variational parameters to maximize the evidence lower bound. The results of CAVI, Newton-CG, and PX-VB are displayed below.   
 
-The following materials were required to complete the research:
+\begin{figure}[h]
+  \centering
+    \begin{subfigure}[t]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{Probit_synth/CAVI_PX_convergence.png}
+        
+    \end{subfigure}
+          \begin{subfigure}[t]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{Probit_synth/elbo_time.png}
+    \end{subfigure}
+    \caption{Convergence results for synthetic data. Number of data points was  $N=500$, dimension of $w$ was $D=20$. }
+\end{figure}
 
-\begin{itemize}
-\item Curabitur pellentesque dignissim
-\item Eu facilisis est tempus quis
-\item Duis porta consequat lorem
-\item Eu facilisis est tempus quis
-\end{itemize}
+\begin{figure}[h]
+        \begin{subfigure}[t]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{Probit_real/CAVI_PX_convergence.png}
+    \end{subfigure}
+          \begin{subfigure}[t]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{Probit_real/elbo_time.png}
+    \end{subfigure}
+    \caption{Convergence results for conducting variational inference on SPAM data (Efron and Hastie 2016). $N= 4601$ emails were examined with the binary dependent variable taken to be whether or not the email was SPAM. $D=57$ keyword predictors were used (e.g. prevalence of the word `'MONEY'', `'FREE'', etc). }
+\end{figure}
 
-The materials were prepared according to the steps outlined below:
+    
+  
 
-\begin{enumerate}
-\item Curabitur pellentesque dignissim
-\item Eu facilisis est tempus quis
-\item Duis porta consequat lorem
-\item Curabitur pellentesque dignissim
-\end{enumerate}
+
+
+
+
 
 \end{block}
 
-%----------------------------------------------------------------------------------------
 
-\end{column} % End of column 2.1
+%------------------------------------
+% Linear mixed effects model
+%------------------------------------
+\begin{block}{Linear mixed effects model}
 
-\begin{column}{\onecolwid}\vspace{-.6in} % The second column within column 2 (column 2.2)
 
-%----------------------------------------------------------------------------------------
-%	METHODS
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Methods}
-
-Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed laoreet accumsan mattis. Integer sapien tellus, auctor ac blandit eget, sollicitudin vitae lorem. Praesent dictum tempor pulvinar. Suspendisse potenti. Sed tincidunt varius ipsum, et porta nulla suscipit et. Etiam congue bibendum felis, ac dictum augue cursus a. \textbf{Donec} magna eros, iaculis sit amet placerat quis, laoreet id est. In ut orci purus, interdum ornare nibh. Pellentesque pulvinar, nibh ac malesuada accumsan, urna nunc convallis tortor, ac vehicula nulla tellus eget nulla. Nullam lectus tortor, \textit{consequat tempor hendrerit} quis, vestibulum in diam. Maecenas sed diam augue.
 
 \end{block}
-
-%----------------------------------------------------------------------------------------
-
-\end{column} % End of column 2.2
-
-\end{columns} % End of the split of column 2 - any content after this will now take up 2 columns width
 
 
 %----------------------------------------------------------------------------------------
 %	IMPORTANT RESULT
-%----------------------------------------------------------------------------------------
-
+%%----------------------------------------------------------------------------------------
+%
 %\begin{alertblock}{Important Result}
-
+%
 %Lorem ipsum dolor \textbf{sit amet}, consectetur adipiscing elit. Sed commodo molestie porta. Sed ultrices scelerisque sapien ac commodo. Donec ut volutpat elit.
-
+%
 %\end{alertblock} 
 
 %----------------------------------------------------------------------------------------
 
-\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
-
-\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
-
-%----------------------------------------------------------------------------------------
-%	MATHEMATICAL SECTION
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Mathematical Section}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-  
-\begin{equation}
-E = mc^{2}
-\label{eqn:Einstein}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\begin{equation}
-\cos^3 \theta =\frac{1}{4}\cos\theta+\frac{3}{4}\cos 3\theta
-\label{eq:refname}
-\end{equation}
-
-Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
-
-\begin{equation}
-\kappa =\frac{\xi}{E_{\mathrm{max}}} %\mathbb{ZNR}
-\end{equation}
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-
-\end{column} % End of column 2.1
-
-\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
-
-%----------------------------------------------------------------------------------------
-%	RESULTS
-%----------------------------------------------------------------------------------------
-
-\begin{block}{Results}
-
-\begin{figure}
-\includegraphics[width=0.8\linewidth]{placeholder.jpg}
-\caption{Figure caption}
-\end{figure}
-
-Nunc tempus venenatis facilisis. Curabitur suscipit consequat eros non porttitor. Sed a massa dolor, id ornare enim:
-
-\begin{table}
-\vspace{2ex}
-\begin{tabular}{l l l}
-\toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
-\midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
-\bottomrule
-\end{tabular}
-\caption{Table caption}
-\end{table}
-
-\end{block}
-
-%----------------------------------------------------------------------------------------
-
-\end{column} % End of column 2.2
-
-\end{columns} % End of the split of column 2
+%\begin{columns}[t,totalwidth=\twocolwid] % Split up the two columns wide column again
+%
+%\begin{column}{\onecolwid} % The first column within column 2 (column 2.1)
+%
+%%----------------------------------------------------------------------------------------
+%%	MATHEMATICAL SECTION
+%%----------------------------------------------------------------------------------------
+%
+%\begin{block}{Mathematical Section}
+%
+%Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
+%  
+%\begin{equation}
+%E = mc^{2}
+%\label{eqn:Einstein}
+%\end{equation}
+%
+%Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
+%
+%\begin{equation}
+%\cos^3 \theta =\frac{1}{4}\cos\theta+\frac{3}{4}\cos 3\theta
+%\label{eq:refname}
+%\end{equation}
+%
+%Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin. Nam quis odio enim, in molestie libero. Vivamus cursus mi at nulla elementum sollicitudin.
+%
+%\begin{equation}
+%\kappa =\frac{\xi}{E_{\mathrm{max}}} %\mathbb{ZNR}
+%\end{equation}
+%
+%\end{block}
+%
+%%----------------------------------------------------------------------------------------
+%
+%\end{column} % End of column 2.1
+%
+%\begin{column}{\onecolwid} % The second column within column 2 (column 2.2)
+%
+%%----------------------------------------------------------------------------------------
+%%	RESULTS
+%%----------------------------------------------------------------------------------------
+%
+%\begin{block}{Results}
+%
+%\begin{figure}
+%\includegraphics[width=0.8\linewidth]{placeholder.jpg}
+%\caption{Figure caption}
+%\end{figure}
+%
+%Nunc tempus venenatis facilisis. Curabitur suscipit consequat eros non porttitor. Sed a massa dolor, id ornare enim:
+%
+%\begin{table}
+%\vspace{2ex}
+%\begin{tabular}{l l l}
+%\toprule
+%\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+%\midrule
+%Treatment 1 & 0.0003262 & 0.562 \\
+%Treatment 2 & 0.0015681 & 0.910 \\
+%Treatment 3 & 0.0009271 & 0.296 \\
+%\bottomrule
+%\end{tabular}
+%\caption{Table caption}
+%\end{table}
+%
+%\end{block}
+%
+%%----------------------------------------------------------------------------------------
+%
+%\end{column} % End of column 2.2
+%
+%\end{columns} % End of the split of column 2
 
 \end{column} % End of the second column
 
