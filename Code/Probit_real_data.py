@@ -18,11 +18,15 @@ X = data[:,0:-1]
 X = X.T # feature vectors in columns
 
 N = np.shape(X)[1]
+
+X = np.concatenate((np.ones((1,N)),X))
+
 D = np.shape(X)[0]
+
 
 print('size of data, (D,N): ', np.shape(X))
 
-t = data[:,-1]
+t = 2*data[:,-1] - 1 ## WAS (0,1) valued, WANT (-1,1) valued
 
 v_0 = 100 # prior variance of w
 
@@ -94,41 +98,41 @@ z_loc = deepcopy(z_init)
 z_var = 1
 
 
-output1 = open('outputs/Wvar_probit.pickle', 'wb')
-pickle.dump(w_var, output1)
+#output1 = open('outputs/Wvar_probit.pickle', 'wb')
+#pickle.dump(w_var, output1)
 
-output2 = open('outputs/Newton_Wmean_probit.pickle', 'rb')
-w_post_mean = pickle.load(output2)
+#output2 = open('outputs/Newton_Wmean_probit.pickle', 'rb')
+#w_post_mean = pickle.load(output2)
 
 
 
-iterations = 1000
+iterations = 3000
 delta = np.zeros(iterations)
 elbo  = np.zeros(iterations)
 times = np.zeros(iterations)
-error = np.zeros(iterations+1)
-error[0] = np.linalg.norm(w_mean - w_post_mean)
+#error = np.zeros(iterations+1)
+#error[0] = np.linalg.norm(w_mean - w_post_mean)
 pars = []
 
-method = 'PXVB' # CAVI or PXVB
+method = 'CAVI' # CAVI or PXVB
 
 telbo = 0.
 delbo = 0.
 t0 = time()
 i=0
 delta[0] = 1.
-while i<iterations and delta[i] > 1e-6:
-    i+=1
-    times[i] = time() - t0 - delbo
+#while i<iterations and delta[i] > 1e-6:
+for i in range(iterations):
+    #times[i] = time() - t0 - delbo
     w_mean_prev = deepcopy(w_mean)
 
-    telbo = time()
+    #telbo = time()
     # compute elbo
     par = np.concatenate((w_mean, z_loc))
     pars.append(par)
     elbo[i] = get_elbo(par, X, t, v_0, w_var)
-    telbo = time() - telbo 
-    delbo += telbo
+    #telbo = time() - telbo 
+    #delbo += telbo
 
     # CAVI updates
     if method == 'CAVI': 
@@ -144,21 +148,21 @@ while i<iterations and delta[i] > 1e-6:
             probit_reparam(X, t, v_0, w_mean, w_var, z_loc, z_var)
     
     delta[i] = np.linalg.norm(w_mean - w_mean_prev)
-    error[i+1] = np.linalg.norm(w_mean - w_post_mean)
+    #error[i+1] = np.linalg.norm(w_mean - w_post_mean)
 
     
     if (i % 10) == 0:
         print(i)
 
 # save output of method
-output3 = open('outputs/' + method + '_elbo_probit.pickle', 'wb')
+output3 = open('outputs/' + method + '_elbo_probit_int.pickle', 'wb')
 pickle.dump(elbo, output3)
 
-output4 = open('outputs/' + method + '_Wmean_probit.pickle', 'wb')
+output4 = open('outputs/' + method + '_Wmean_probit_int.pickle', 'wb')
 pickle.dump(w_mean, output4)
 
-output5 = open('outputs/' + method + '_times_probit.pickle', 'wb')
+output5 = open('outputs/' + method + '_times_probit_int.pickle', 'wb')
 pickle.dump(times, output5)
 
-output6 = open('outputs/' + method + '_pars_probit.pickle', 'wb')
+output6 = open('outputs/' + method + '_pars_probit_int.pickle', 'wb')
 pickle.dump(pars, output6)
