@@ -41,7 +41,7 @@ y_vec = np.random.normal(y_mean, prior_var['y'], NObs)
 
 
 ##### NEWTON METHOD #####
-print "Running Newton"
+print("Running Newton")
 
 # variational parameters
 beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
@@ -62,7 +62,7 @@ mu_post_mean   = results.x[K:]
 
 
 ##### CAVI METHOD #####
-print "Running CAVI"
+print("Running CAVI")
 
 # variational parameters
 beta_mean = np.random.multivariate_normal(np.zeros(K), np.identity(K))
