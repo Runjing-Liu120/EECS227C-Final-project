@@ -143,7 +143,7 @@ def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
 
     elbo = []
     times= []
-    #pars = []
+    pars = []
     t0 = time()
     it = []
     def callbackF(par):
@@ -151,7 +151,7 @@ def probit_Newton(X, t, v_0, w_mean, w_var, z_loc):
         #print('iter=',len(it))
         elbo.append(-kl_wrapper.kl(par, X, t, v_0, w_var))
         times.append(time()-t0)
-        #pars.append(par)
+        pars.append(par)
 
     vb_opt = optimize.minimize(
         lambda par: kl_wrapper.kl(par, X, t, v_0, w_var),

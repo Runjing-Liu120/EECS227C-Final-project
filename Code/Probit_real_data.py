@@ -26,6 +26,10 @@ t = data[:,-1]
 
 v_0 = 100 # prior variance of w
 
+np.random.seed(12345676)
+
+w_init = np.random.multivariate_normal(np.zeros(D), np.identity(D))
+z_init = np.random.normal(0, 1, N)
 
 """
 # Gibbs sampler
@@ -40,17 +44,17 @@ print(method, ' posterior mean: \n', w_mean)
 
 """
 
-
-
 """
+
+
 ## Newton method
 
 # initialize
-w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
+w_mean = deepcopy(w_init)
 w_var  = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
-z_loc = np.random.normal(0, 1, N)
+z_loc = deepcopy(z_init)
 
-results, times, elbo = probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
+results, times, elbo, pars = probit_Newton(X, t, v_0, w_mean, w_var, z_loc)
 w_post_mean = results.x[:D]
 z_post_loc  = results.x[D:]
 
@@ -74,40 +78,59 @@ pickle.dump(elbo, output1)
 
 output2 = open('outputs/Newton_Wmean_probit.pickle', 'wb')
 pickle.dump(w_post_mean, output2)
+
+output3 = open('outputs/Newton_pars_probit.pickle', 'wb')
+pickle.dump(pars, output3)
+
 """
 
 output2 = open('outputs/Newton_Wmean_probit.pickle', 'rb')
 w_post_mean = pickle.load(output2)
 
 
-# re-initializations
-w_mean = np.random.multivariate_normal(np.zeros(D), np.identity(D) )
+# re-initialize
+w_mean = deepcopy(w_init)
 w_var  = np.linalg.inv(np.dot(X,X.T) + (1/v_0) * np.identity(D))
 
-z_loc = np.random.normal(0, 1, N)
+z_loc = deepcopy(z_init)
 z_var = 1
 
 
 iterations = 1000
 delta = np.zeros(iterations)
-elbo_CAVI = np.zeros(iterations)
-times_CAVI = np.zeros(iterations)
+elbo  = np.zeros(iterations)
+times = np.zeros(iterations)
 error = np.zeros(iterations+1)
 error[0] = np.linalg.norm(w_mean - w_post_mean)
-#method = 'PX-VB'
-method = 'CAVI'
+pars = []
 
+method = 'PXVB' # CAVI or PXVB
+
+telbo = 0.
+delbo = 0.
 t0 = time()
-for i in range(iterations):
-    times_CAVI[i] = time() - t0
+i=0
+delta[0] = 1.
+while i<iterations and delta[i] > 1e-6
+    i+=1
+    times[i] = time() - t0 - delbo
     w_mean_prev = deepcopy(w_mean)
+
+    telbo = time()
+    # compute elbo
+    par = np.concatenate((w_mean, z_loc))
+    pars.append(par)
+    elbo[i] = get_elbo(par, X, t, v_0, w_var)
+    telbo = time() - telbo 
+    delbo += telbo
+
     # CAVI updates
     if method == 'CAVI': 
         [w_mean, w_var, z_loc, z_trunc_mean] \
             = probit_CAVI(X, t, v_0, w_mean, w_var, z_loc, z_var)
     
     # PX-VB updates
-    if method == 'PX-VB': 
+    if method == 'PXVB': 
         [w_mean, w_var, z_loc, z_trunc_mean] \
             = probit_CAVI(X, t, v_0, w_mean, w_var, z_loc, z_var)
             
@@ -116,40 +139,20 @@ for i in range(iterations):
     
     delta[i] = np.linalg.norm(w_mean - w_mean_prev)
     error[i+1] = np.linalg.norm(w_mean - w_post_mean)
-    # compute elbo
-    par = np.concatenate((w_mean, z_loc))
-    elbo_CAVI[i] = get_elbo(par, X, t, v_0, w_var)
 
     
     if (i % 10) == 0:
         print(i)
 
-"""
-plt.figure(1)
-plt.clf()
-plt.semilogy(delta)
-plt.xlabel('iteration')
-plt.ylabel('$||w^{l+1} - w^l||_2$')
-plt.title('pairwise difference')
+# save output of method
+output3 = open('outputs/' + method + '_elbo_probit.pickle', 'wb')
+pickle.dump(elbo, output3)
 
-plt.figure(2) 
-plt.clf()
-plt.plot(error)
-plt.title('CAVI error to Newton')
-plt.xlabel('iteration')
-
-plt.figure(3)
-plt.plot(elbo_CAVI)
-
-plt.show()
-"""
-
-# save output of CAVI
-output3 = open('outputs/CAVI_elbo_probit.pickle', 'wb')
-pickle.dump(elbo_CAVI, output3)
-
-output4 = open('outputs/CAVI_Wmean_probit.pickle', 'wb')
+output4 = open('outputs/' + method + '_Wmean_probit.pickle', 'wb')
 pickle.dump(w_mean, output4)
 
-output5 = open('outputs/CAVI_times_probit.pickle', 'wb')
-pickle.dump(times_CAVI, output5)
+output5 = open('outputs/' + method + '_times_probit.pickle', 'wb')
+pickle.dump(times, output5)
+
+output6 = open('outputs/' + method + '_pars_probit.pickle', 'wb')
+pickle.dump(pars, output6)
