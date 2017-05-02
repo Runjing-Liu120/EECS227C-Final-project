@@ -66,7 +66,7 @@
 %	TITLE SECTION 
 %----------------------------------------------------------------------------------------
 
-\title{Accelerating Convergence of Variational Bayes} % Poster title
+\title{Data Augmentation to Accelerate Convergence of Variational Bayes} % Poster title
 
 \author{Runjing Liu and Jake Soloff} % Author(s)
 
@@ -224,21 +224,21 @@ The convergence results (above) for the toy model demonstrate that strategies wh
 
 
 \begin{block}{Parameter Expansion Variational Bayes}
-Let $p_0(\theta, X)$ be the model for data $X$ and parameters $\theta$. In variational inference, our objective is to minimize
+Let $p_0(\theta, X)$ be a model for data $X$ and parameters $\theta = \{\theta_i\}_{i=1}^K$. In mean-field variational inference, we solve%our objective is to minimize
 \begin{align*}
-\min_q D\Big( \prod_{i=1}^K q(\theta_i) \| p_0(\theta, X) \Big)
+\min_q D\Big( \prod_{i=1}^K q(\theta_i) \,\big\|\, p_0(\theta, X) \Big)
 \end{align*}
 
-In PX-VB we {\itshape augment} the data model with an auxillary parameter $\alpha$, and let this overparametrized model be denoted as $p_\alpha(\theta, X)$. At the $t$th iteration, PX-VB does the following: 
-\begin{itemize}
-\item {\bf Coordinate ascent: } Sequentially update $q^{(t)}(\theta_i)$, $i=1,...,K$ to minimize $D\big( \prod_{i=1}^K q(\theta_i) \| p_0(\theta, X) \big)$. 
-\item {\bf Expand: } Choose $\alpha$ to minimize $D\big( \prod_{i=1}^K q^{(t)}(\theta_i) \| p_\alpha(\theta, X) \big)$
-\item {\bf Reduce: } We reduce to the original model by choosing a reparametrization $\theta \mapsto \hat\theta$ such that
+In PX-VB, we {\itshape augment} the data model with an auxillary parameter $\alpha$, and denote the overparametrized model by $p_\alpha(\theta, X)$. At the $t$-th iteration, PX-VB does the following: 
+\begin{enumerate}[(i)]
+\item ~{\bf Coordinate ascent: } Sequentially update $q^{(t)}(\theta_i)$, $i=1,...,K$ to minimize $D\big( \prod_{i=1}^K q(\theta_i) \| p_0(\theta, X) \big)$. 
+\item ~{\bf Expand: } Choose $\alpha$ to minimize $D\big( \prod_{i=1}^K q^{(t)}(\theta_i) \| p_\alpha(\theta, X) \big)$.
+\item ~{\bf Reduce: } Choose a reparametrization $\theta \mapsto \hat\theta$ such that
 \begin{align*}
-D\Big( \prod_{i=1}^K q^{(t)}(\hat\theta) \| p_{\alpha_0}(\hat\theta, X) \big) = D\big( \prod_{i=1}^K q^{(t)}(\theta_i) \| p_\alpha(\theta, X) \Big)
+D\Big( \prod_{i=1}^K q^{(t)}(\hat\theta) \,\big\|\, p_{0}(\hat\theta, X) \Big) = D\Big( \prod_{i=1}^K q^{(t)}(\theta_i) \,\big\|\, p_\alpha(\theta, X) \Big)
 \end{align*}
 Finally, set $q^{(t+1)}(\theta) = q^{(t)}(\hat\theta)$, and repeat. 
-\end{itemize}
+\end{enumerate}
 \end{block}
 
 \vspace{-1em}
@@ -249,9 +249,9 @@ Finally, set $q^{(t+1)}(\theta) = q^{(t)}(\hat\theta)$, and repeat.
 \begin{block}{Example: Probit regression}
 Let $\{t_n\}_{n=1}^N$ be $\{-1,+1\}$--valued random variables. In probit regression, our likelihood is
 \begin{align*}
-p(t | X, w) = \prod_{n=1}^N \Phi(t_nx_n^Tw)
+p(t | X, w) = \prod_{n=1}^N \Phi(t_nw^\mathsf T x_n)
 \end{align*}
-where $\Phi$ is the standard normal c.d.f function. The matrix $X$ is fixed, and we place a normal prior on the weights $w\in\mathbb R^D$. The results of CAVI, Newton-CG, and PX-VB are displayed below.   \\ %To do inference on $w$, we adopt a variational approach, optimizing over variational parameters to maximize the {\sl evidence lower bound} $\text{ELBO}(q) = \log p(X,t) - D(q\| p(w| X,t))$. 
+where $\Phi$ is the standard normal c.d.f. The matrix $X\in\mathbb R^{N\times D}$ is fixed, and we place a normal prior on the weights $w\in\mathbb R^D$. The results of CAVI, Newton-CG, and PX-VB are displayed below.   \\ %To do inference on $w$, we adopt a variational approach, optimizing over variational parameters to maximize the {\sl evidence lower bound} $\text{ELBO}(q) = \log p(X,t) - D(q\| p(w| X,t))$. 
 
 
 
@@ -273,7 +273,7 @@ where $\Phi$ is the standard normal c.d.f function. The matrix $X$ is fixed, and
           \begin{subfigure}[t]{0.49\textwidth}
         \includegraphics[width=\textwidth]{Probit_real/elbo_time.png}
     \end{subfigure}
-    \caption{Convergence results for variational inference on SPAM dataset (Efron and Hastie 2016), consisting of $N= 4601$ emails, each with $D=57$ keyword predictors (see examples in table). The response variables $t_n$ indicate whether the email was spam. The consecutive differences in the second order method did not exhibit as much regularity, so they are omitted on the first plot.}
+    \caption{Convergence results for variational inference on SPAM dataset [2], consisting of $N= 4601$ emails, each with $D=57$ keyword predictors (see examples in table). The response variables $t_n$ indicate whether the email was spam.} %The consecutive differences in the second order method did not exhibit as much regularity, so they are omitted on the first plot.}
 \end{figure}
 
 \vspace{-.5em}
@@ -409,9 +409,10 @@ Estimate $\widehat w$ & -7.66 & 0.46 & -1.78 & -1.85 & 0.16 & 2.30 & 1.35\\
 
 \begin{block}{Conclusion}
 
-We found that in our Bayesian Probit regression problem, PX-VB speeds up the convergence of variational methods compared to coordinate ascent and Newton conjugate gradient, two standard algorithms in optimization. While the PX-VB algorithm adds an intermediate step to coordinate ascent, the computational cost of this additional step is small-- and is easily compensated by the drop in iteration complexity. Conversely, the Newton method converges in fewer iterations, but the computational cost per iteration is heavy. \\~\\
+%We found that in our Bayesian Probit regression problem, PX-VB speeds up the convergence of variational methods compared to coordinate ascent and Newton conjugate gradient, two standard algorithms in optimization. 
+While PX-VB introduces an intermediate step to coordinate ascent, the computational cost of this additional step is often small---and is made worthwhile by the gains in per-iteration rate of convergence. In our analysis, Newton's method converges in fewer iterations, but the cost per iteration is high. \\~\\
 
-One challenge to running PX-VB is anticipating which data-augmentation scheme will actually achieve an acceleration in convergence. If we view the intermediate step in PX-VB as defining a mapping $M_\alpha$ that takes $(q, p_0) \mapsto (q, p_\alpha) \mapsto (q_\alpha, p_0)$, then [5] shows that when the smallest eigenvalue of $M_\alpha$ is less than 1, then PX-VB will converge faster than CAVI. However, determining how to augment a model to achieve such a mapping, or even computing this eigenvalue from an abstract mapping, or is non-trivial.
+One challenge to running PX-VB is anticipating which data-augmentation scheme will actually accelerate convergence. If we view the intermediate step in PX-VB as defining a mapping $M$ that takes $(q, p_0) \stackrel{\text{(ii)}}{\mapsto} (q, p_\alpha) \stackrel{\text{(iii)}}{\mapsto} (q_\alpha, p_0)$, then whenever the largest eigenvalue of $M$ is less than $1$, PX-VB will converge faster than CAVI. However, determining how to augment a model to achieve such a mapping, or even computing this eigenvalue from an abstract mapping, is non-trivial.
 
 \end{block}
 
@@ -427,12 +428,17 @@ One challenge to running PX-VB is anticipating which data-augmentation scheme wi
 
 %Variational Bayes is perhaps most useful when large numbers of latent parameters make sampling methods computationally intractable. Transformations 
 
+It is well known that the mean field approximation performs well when the posterior distribution has low correlation. Therefore, we would like to understand the connection between the reparametrization mapping $M$ and the posterior correlation structure. ~\\~\\
 
-\begin{itemize}
-\item combine gains of data augmentation algorithms with practical utility of automatic differentiation (i.e. use autodiff instead of CAVI and PX-reduction to perform $M_\alpha$ maybe)
-\item study in case of BNP factor analysis models (\#beta-bernoulli)
-\item what is the dealio in terms of optimization
-\end{itemize}
+Ultimately, in the normal hierarchical model, data augmentation methods correspond to choosing good directions for coordinate ascent. We would like to look at more examples where PX-VB succeeds and understand whether, more generally, these directions make use of second-order structure.
+
+
+%\begin{itemize}
+%\item make clear the dependence on $\lambda_{max}(M)$ with posterior correlations $\Sigma$
+%\item come up with general recipe for px-vb
+%\item combine gains of data augmentation algorithms with practical utility of automatic differentiation (i.e. use autodiff instead of CAVI and PX-reduction to perform $M_\alpha$ maybe)
+%\item study in case of BNP factor analysis models (\#beta-bernoulli)
+%\end{itemize}
 
 %Factor analysis
 %Random rotations?
@@ -483,11 +489,11 @@ Question-- An Ancillarity-Sufficiency Interweaving Strategy (ASIS) for Boosting 
 
 
 
-\begin{center}
-\begin{tabular}{ccc}
-\includegraphics[width=0.5\linewidth]{logo.png} %& \hfill & \includegraphics[width=0.4\linewidth]{logo.png}
-\end{tabular}
-\end{center}
+%\begin{center}
+%\begin{tabular}{ccc}
+%\includegraphics[width=0.5\linewidth]{logo.png} %& \hfill & \includegraphics[width=0.4\linewidth]{logo.png}
+%\end{tabular}
+%\end{center}
 
 %----------------------------------------------------------------------------------------
 
