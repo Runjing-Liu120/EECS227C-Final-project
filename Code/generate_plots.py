@@ -8,7 +8,7 @@ matplotlib.rcParams.update({'font.size': 14})
 
 # load output of Newton
 output0 = open('outputs/Newton_times_probit.pickle', 'rb')
-times_newt = pkl.load(output0)
+times_newt = np.array(pkl.load(output0))
 
 output1 = open('outputs/Newton_elbo_probit.pickle', 'rb')
 elbo_newt  = pkl.load(output1)
@@ -48,20 +48,23 @@ times_PXVB = pkl.load(output10)
 output11 = open('outputs/PXVB_pars_probit.pickle', 'rb')
 pars_PXVB = pkl.load(output11)
 
-"""
+
 # elbo plot
 plt.figure(1)
-m = min([elbo_cavi[0],elbo_pxvb[0], elbo_newt[0]])
-plt.plot(times_CAVI[:10], elbo_cavi[:10],'ro-')
-plt.plot(times_PXVB[:20], elbo_pxvb[:20],'bd-')
-plt.plot(times_newt[:3], elbo_newt[:3],'g*-')
+#m = min([elbo_cavi[0],elbo_pxvb[0], elbo_newt[0]])
+t0 = 0
+plt.plot(times_CAVI[t0:10] - times_CAVI[0], elbo_cavi[t0:10],'ro-')
+plt.plot(times_PXVB[t0:20] - times_PXVB[0], elbo_pxvb[t0:20],'bd-')
+plt.plot(times_newt[t0:3] - times_newt[0], elbo_newt[t0:3],'g*-')
 plt.xlabel("Wall Time (s)") 
 plt.ylabel("ELBO")
 plt.legend(['CAVI','PXVB','NCG'], loc= 4)
 plt.title('ELBO vs Time')
 plt.tight_layout()
 plt.savefig('../poster/Probit_real/elbo_time.png')
-"""
+plt.show()
+
+
 
 
 """
@@ -76,7 +79,7 @@ plt.ylabel("$\|w^t - w^*\|$")
 plt.legend(['CAVI','PXVB'], loc= 4)
 plt.title('Distance to Newton solution')
 """
-
+"""
 # pairwise diffs plot
 delta_cavi = [np.linalg.norm(pars_CAVI[i+1][:D] - pars_CAVI[i][:D]) for i in range(len(pars_CAVI)-1)]
 delta_pxvb = [np.linalg.norm(pars_PXVB[i+1][:D] - pars_PXVB[i][:D]) for i in range(len(pars_PXVB)-1)]
@@ -92,3 +95,5 @@ plt.title('Difference Between Consecutive Estimates')
 plt.tight_layout()
 #plt.savefig('../poster/Probit_real/CAVI_PX_convergence.png') 
 plt.show()
+
+"""
